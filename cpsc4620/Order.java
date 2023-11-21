@@ -146,27 +146,18 @@ public class Order
 		}
 	}
 
-	public String toSimplePrint() 
-	{
-		try 
-		{
+	public String toSimplePrint() {
+		try {
 			boolean iscomplete = true;
-			if(isComplete == 0)
+			if (isComplete == 0)
 				iscomplete = false;
 			return "OrderID=" + OrderID + " | Date Placed= " + this.Date + " | Customer name= " + DBNinja.getCustomerName(CustID) + ", OrderType= " + OrderType + ", IsComplete= " + iscomplete;
-		} 
-		catch (SQLException e) {
+		} catch (SQLException e) {
 			e.printStackTrace();
 			return "ERROR IN SIMPLE PRINT CUSTOMER";
-		} 
-		catch (IOException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 			return "ERROR IN SIMPLE PRINT CUSTOMER";
 		}
 	}
-
-	
-	
-	
-	
 }
