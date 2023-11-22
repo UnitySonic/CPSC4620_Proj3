@@ -28,7 +28,6 @@ public class Menu {
 	public static BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
 	public static void main(String[] args) throws SQLException, IOException {
-
 		System.out.println("Welcome to Pizzas-R-Us!");
 		
 		int menu_option = 0;
@@ -75,10 +74,18 @@ public class Menu {
 
 	}
 
-	// allow for a new order to be placed
-	public static void EnterOrder() throws SQLException, IOException 
-	{
+	// prompt user to enter yes (y) or no (n) for a choice
+	public static String askYesOrNo() throws SQLException, IOException {
+		String answer = reader.readLine();
+		while(!answer.equals("y") && !answer.equals("n")) {
+			System.out.println("Invalid choice. Please enter y or n.");
+			answer = reader.readLine();
+		}
+		return answer;
+	}
 
+	// allow for a new order to be placed
+	public static void EnterOrder() throws SQLException, IOException {
 		/*
 		 * EnterOrder should do the following:
 		 * 
@@ -98,24 +105,100 @@ public class Menu {
 		 * make sure you use the prompts below in the correct order!
 		 */
 
-		 // User Input Prompts...
+		// Order object fields
+		String order_type = "";
+		String customer_ID;
+		int table_num = 0;
+
+		// Customer address fields
+		String customer_street = "";
+		String customer_city = "";
+		String customer_state = "";
+		String customer_zip = "";
+
+		// User Input Prompts...
 		System.out.println("Is this order for: \n1.) Dine-in\n2.) Pick-up\n3.) Delivery\nEnter the number of your choice:");
-		System.out.println("Is this order for an existing customer? Answer y/n: ");
-		System.out.println("Here's a list of the current customers: ");
-		System.out.println("Which customer is this order for? Enter ID Number:");
-		System.out.println("ERROR: I don't understand your input for: Is this order an existing customer?");
-		System.out.println("What is the table number for this order?");
+		String option = reader.readLine();
+		int order_type_choice = Integer.parseInt(option);
+		// Verify that user entered a valid choice
+		while(order_type_choice < 1 || order_type_choice > 3) {
+			System.out.println("Invalid choice. Please enter a number from 1 to 3.");
+			System.out.println("Is this order for: \n1.) Dine-in\n2.) Pick-up\n3.) Delivery\nEnter the number of your choice:");
+			option = reader.readLine();
+			order_type_choice = Integer.parseInt(option);
+		}
+		// Set order type
+		if(order_type_choice == 1) {
+			order_type = DBNinja.dine_in;
+			// Dine-in orders need a table number
+			System.out.println("What is the table number for this order?");
+			option = reader.readLine();
+			table_num = Integer.parseInt(option);
+			while(table_num <= 0) {
+				System.out.println("Table number must be at least 1.");
+				System.out.println("What is the table number for this order?");
+				option = reader.readLine();
+				table_num = Integer.parseInt(option);
+			}
+		}
+		else {
+			// Pickup and delivery orders need a customer
+			System.out.println("Is this order for an existing customer? Answer y/n: ");
+			option = reader.readLine();
+			while(!option.equals("y") && !option.equals("n")) {
+				System.out.println("ERROR: I don't understand your input for: Is this order an existing customer?");
+				System.out.println("Is this order for an existing customer? Answer y/n: ");
+				option = reader.readLine();
+			}
+			if(option.equals("y")) {
+				// Show the current customers
+				System.out.println("Here's a list of the current customers: ");
+				viewCustomers();
+				System.out.println("Which customer is this order for? Enter ID Number:");
+				customer_ID = reader.readLine();
+			}
+			else {
+				// Prompt user to create a new customer
+				EnterCustomer();
+			}
+			if (order_type_choice == 2) {
+				order_type = DBNinja.pickup;
+			}
+			else {
+				order_type = DBNinja.delivery;
+				// Delivery orders require a customer's address
+				System.out.println("What is the House/Apt Number for this order? (e.g., 111)");
+				customer_street = (reader.readLine() + " ");
+				System.out.println("What is the Street for this order? (e.g., Smile Street)");
+				customer_street += reader.readLine();
+				System.out.println("What is the City for this order? (e.g., Greenville)");
+				customer_city = reader.readLine();
+				System.out.println("What is the State for this order? (e.g., SC)");
+				customer_state = reader.readLine();
+				System.out.println("What is the Zip Code for this order? (e.g., 20605)");
+				customer_zip = reader.readLine();
+			}
+		}
+
+		// Prompt user to build a pizza
 		System.out.println("Let's build a pizza!");
-		System.out.println("Enter -1 to stop adding pizzas...Enter anything else to continue adding pizzas to the order.");
+		option = "0";
+		while(!option.equals("-1")) {
+			buildPizza(100); // how do we get the latest order id?
+			System.out.println("Enter -1 to stop adding pizzas...Enter anything else to continue adding pizzas to the order.");
+			option = reader.readLine();
+		}
+
 		System.out.println("Do you want to add discounts to this order? Enter y/n?");
-		System.out.println("Which Order Discount do you want to add? Enter the DiscountID. Enter -1 to stop adding Discounts: ");
-		System.out.println("What is the House/Apt Number for this order? (e.g., 111)");
-		System.out.println("What is the Street for this order? (e.g., Smile Street)");
-		System.out.println("What is the City for this order? (e.g., Greenville)");
-		System.out.println("What is the State for this order? (e.g., SC)");
-		System.out.println("What is the Zip Code for this order? (e.g., 20605)");
-		
-		
+		option = "0";
+		while(!option.equals("-1")) {
+			// make method to list all discounts
+			System.out.println("Which Order Discount do you want to add? Enter the DiscountID. Enter -1 to stop adding Discounts: ");
+			option = reader.readLine();
+		}
+
+		// Add code to create order object and create DB record
+
 		System.out.println("Finished adding order...Returning to menu...");
 	}
 	
@@ -125,12 +208,7 @@ public class Menu {
 		/*
 		 * Simply print out all of the customers from the database. 
 		 */
-		
-		
-		
-		
-		
-		
+
 	}
 	
 
@@ -146,12 +224,18 @@ public class Menu {
 		 * 
 		 * Once you get the name and phone number, add it to the DB
 		 */
-		
-		// User Input Prompts...
-		 System.out.println("What is this customer's name (first <space> last");
-		 System.out.println("What is this customer's phone number (##########) (No dash/space)");
- 
 
+		// Customer object fields
+		String name = "";
+		String phone = "";
+
+		// User Input Prompts...
+		System.out.println("What is this customer's name (first <space> last");
+		name = reader.readLine(); // input validation
+		System.out.println("What is this customer's phone number (##########) (No dash/space)");
+ 		phone = reader.readLine(); // input validation
+
+		// Code to add new record to the DB
 	}
 
 	// View any orders that are not marked as completed
@@ -236,9 +320,7 @@ public class Menu {
 	}
 
 	// A method that builds a pizza. Used in our add new order method
-	public static Pizza buildPizza(int orderID) throws SQLException, IOException 
-	{
-		
+	public static Pizza buildPizza(int orderID) throws SQLException, IOException {
 		/*
 		 * This is a helper method for first menu option.
 		 * 
@@ -253,7 +335,7 @@ public class Menu {
 		 * Once the discounts are added, we can return the pizza
 		 */
 
-		 Pizza ret = null;
+		Pizza ret = null;
 		
 		// User Input Prompts...
 		System.out.println("What size is the pizza?");
@@ -276,11 +358,7 @@ public class Menu {
 		System.out.println("Do you want to add discounts to this Pizza? Enter y/n?");
 		System.out.println("Which Pizza Discount do you want to add? Enter the DiscountID. Enter -1 to stop adding Discounts: ");
 		System.out.println("Do you want to add more discounts to this Pizza? Enter y/n?");
-	
-		
-		
-		
-		
+
 		return ret;
 	}
 	
