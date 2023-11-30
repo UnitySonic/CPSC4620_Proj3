@@ -72,6 +72,7 @@ public final class DBNinja {
 
 		
 		//DO NOT FORGET TO CLOSE YOUR CONNECTION
+		conn.close();
 	}
 	
 	public static void addPizza(Pizza p) throws SQLException, IOException
@@ -99,7 +100,7 @@ public final class DBNinja {
 		 * This method should do 2 two things.
 		 * - update the topping inventory every time we use t topping (accounting for extra toppings as well)
 		 * - connect the topping to the pizza
-		 *   What that means will be specific to your yimplementatinon.
+		 *   What that means will be specific to your implementatinon.
 		 * 
 		 * Ideally, you should't let toppings go negative....but this should be dealt with BEFORE calling this method.
 		 * 
@@ -154,12 +155,18 @@ public final class DBNinja {
 		 * This method adds a new customer to the database.
 		 * 
 		 */
-				
+		String query = "INSERT INTO customer (CustomerFName, CustomerLName, CustomerPhoneNumber) VALUES(?, ?, ?)";
+		PreparedStatement ps = conn.prepareStatement(query);
+		ps.setString(1, c.getFName());
+		ps.setString(2, c.getLName());
+		ps.setString(3, c.getPhone());
+		ps.executeUpdate();
 		
 		
 		
 		
 		//DO NOT FORGET TO CLOSE YOUR CONNECTION
+		conn.close();
 	}
 
 	public static void completeOrder(Order o) throws SQLException, IOException {
@@ -268,7 +275,7 @@ public final class DBNinja {
 		 * Query the data for all the customers and return an arrayList of all the customers. 
 		 * Don't forget to order the data coming from the database appropriately.
 		 * 
-		*/
+		 */
 
 
 		
@@ -479,7 +486,7 @@ public final class DBNinja {
 		 * 
 		 */
 		String cname1 = "";
-		String query = "Select FName, LName From customer WHERE CustID=" + CustID + ";";
+		String query = "Select CustomerFName, CustomerLName From customer WHERE CustomerID=" + CustID + ";";
 		Statement stmt = conn.createStatement();
 		ResultSet rset = stmt.executeQuery(query);
 		
@@ -496,17 +503,17 @@ public final class DBNinja {
 		PreparedStatement os;
 		ResultSet rset2;
 		String query2;
-		query2 = "Select FName, LName From customer WHERE CustID=?;";
+		query2 = "Select CustomerFName, CustomerLName From customer WHERE CustomerID=?;";
 		os = conn.prepareStatement(query2);
 		os.setInt(1, CustID);
 		rset2 = os.executeQuery();
 		while(rset2.next())
 		{
-			cname2 = rset2.getString("FName") + " " + rset2.getString("LName"); // note the use of field names in the getSting methods
+			cname2 = rset2.getString("CustomerFName") + " " + rset2.getString("CustomerLName"); // note the use of field names in the getSting methods
 		}
 
 		conn.close();
-		return cname1; // OR cname2
+		return cname2; // OR cname2
 	}
 
 	/*
@@ -547,6 +554,4 @@ public final class DBNinja {
 			}
 		}
 	}
-
-
 }

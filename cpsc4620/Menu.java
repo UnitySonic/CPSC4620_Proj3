@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /*
  * This file is where the front end magic happens.
  * 
@@ -230,12 +233,36 @@ public class Menu {
 		String phone = "";
 
 		// User Input Prompts...
-		System.out.println("What is this customer's name (first <space> last");
-		name = reader.readLine(); // input validation
-		System.out.println("What is this customer's phone number (##########) (No dash/space)");
- 		phone = reader.readLine(); // input validation
+		System.out.println("Please Enter the Customer name (First Name <space> Last Name):");
+		name = reader.readLine();
+		// Use a regex pattern to verify the name is correct
+		Pattern check_name = Pattern.compile("^[^\\s]+\\s[^\\s]+$", Pattern.CASE_INSENSITIVE);
+		Matcher match_name = check_name.matcher(name);
+		// Do not accept invalid names
+		while(!match_name.find()) {
+			System.out.println("Please Enter the Customer name (First Name <space> Last Name):");
+			name = reader.readLine();
+			match_name = check_name.matcher(name);
+		}
 
-		// Code to add new record to the DB
+		System.out.println("What is this customer's phone number (##########) (No dash/space)");
+ 		phone = reader.readLine();
+		// Use a regex pattern to verify the phone number is correct
+		Pattern check_phone = Pattern.compile("^[0-9]{10}$", Pattern.CASE_INSENSITIVE);
+		Matcher match_phone = check_phone.matcher(phone);
+		// Do not accept invalid phone numbers
+		while(!match_phone.find()) {
+			System.out.println("What is this customer's phone number (##########) (No dash/space)");
+			phone = reader.readLine();
+			match_phone = check_phone.matcher(phone);
+		}
+
+		// Create a Customer Object
+		String[] split_name = name.split(" ", 0);
+		String first_name = split_name[0];
+		String last_name = split_name[1];
+		Customer cust = new Customer(5, first_name, last_name, phone);
+		DBNinja.addCustomer(cust);
 	}
 
 	// View any orders that are not marked as completed
