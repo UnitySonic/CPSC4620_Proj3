@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -261,7 +260,8 @@ public class Menu {
 		String[] split_name = name.split(" ", 0);
 		String first_name = split_name[0];
 		String last_name = split_name[1];
-		Customer cust = new Customer(5, first_name, last_name, phone);
+		// The 1 passed in for custID is a dummy value; custID is set in the addCustomer method
+		Customer cust = new Customer(1, first_name, last_name, phone);
 		DBNinja.addCustomer(cust);
 	}
 
@@ -300,7 +300,7 @@ public class Menu {
 		/*
 		 * All orders that are created through java (part 3, not the orders from part 2) should start as incomplete
 		 * 
-		 * When this method is called, you should print all of the "opoen" orders marked
+		 * When this method is called, you should print all of the "open" orders marked
 		 * and allow the user to choose which of the incomplete orders they wish to mark as complete
 		 * 
 		 */
