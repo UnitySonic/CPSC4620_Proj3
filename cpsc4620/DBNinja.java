@@ -165,8 +165,9 @@ public final class DBNinja {
 		 * - connect the topping to the pizza
 		 * What that means will be specific to your implementatinon.
 		 * 
-		 * Ideally, you should't let toppings go negative....but this should be dealt
-		 * with BEFORE calling this method.
+
+		 * Ideally, you shouldn't let toppings go negative....but this should be dealt with BEFORE calling this method.
+
 		 * 
 		 */
 
@@ -204,9 +205,9 @@ public final class DBNinja {
 		 */
 		final int FIRST_CUST_ID = 1;
 		// Get the number of customers from the database
-		String count_query = "SELECT COUNT(*) FROM customer";
+		String count_query = "SELECT COUNT(*) FROM customer;";
 		PreparedStatement ps = conn.prepareStatement(count_query);
-		ResultSet resultSet = ps.executeQuery(count_query);
+		ResultSet resultSet = ps.executeQuery();
 		int numCust = 0;
 		while (resultSet.next()) {
 			numCust = resultSet.getInt(1);
@@ -215,7 +216,7 @@ public final class DBNinja {
 		c.setCustID(numCust + FIRST_CUST_ID);
 
 		// Add the customer to the database with a prepared statement
-		String insert_query = "INSERT INTO customer (CustomerFName, CustomerLName, CustomerPhoneNumber) VALUES(?, ?, ?)";
+		String insert_query = "INSERT INTO customer (CustomerFName, CustomerLName, CustomerPhoneNumber) VALUES(?, ?, ?);";
 		ps = conn.prepareStatement(insert_query);
 		ps.setString(1, c.getFName());
 		ps.setString(2, c.getLName());
@@ -368,11 +369,31 @@ public final class DBNinja {
 		 * 
 		 */
 
-		// DO NOT FORGET TO CLOSE YOUR CONNECTION
-		return null;
+		ArrayList<Customer> customers = new ArrayList<Customer>();
+		Customer cust = null;
+		String name = "";
+		// Query the database
+		String query = "SELECT * FROM customer;";
+		PreparedStatement ps = conn.prepareStatement(query);
+		ResultSet resultSet = ps.executeQuery();
+		// Get all customers from the table
+		while(resultSet.next()) {
+			// Add each customer to the list
+			cust = new Customer(resultSet.getInt("CustomerID"), resultSet.getString("CustomerFName"),
+					resultSet.getString("CustomerLName"), resultSet.getString("CustomerPhoneNumber"));
+			cust.setAddress(resultSet.getString("CustomerStreetAddress"), resultSet.getString("CustomerCity"),
+					resultSet.getString("CustomerState"), resultSet.getString("CustomerZipCode"));
+			customers.add(cust);
+		}
+		
+		//DO NOT FORGET TO CLOSE YOUR CONNECTION
+		conn.close();
+		return customers;
 	}
 
-	public static Customer findCustomerByPhone(String phoneNumber) {
+	public static Customer findCustomerByPhone(String phoneNumber) throws SQLException, IOException {
+		connect_to_db();
+
 		/*
 		 * Query the database for a customer using a phone number.
 		 * If found, then return a Customer object for the customer.
@@ -380,7 +401,24 @@ public final class DBNinja {
 		 * 
 		 */
 
-		return null;
+		Customer cust = null;
+		// Get the customer with the provided phone number
+		String query = "SELECT * FROM customer WHERE CustomerPhoneNumber = ?;";
+		PreparedStatement ps = conn.prepareStatement(query);
+		ps.setString(1, phoneNumber);
+		ResultSet resultSet = ps.executeQuery();
+		while(resultSet.next()) {
+			// If there is a match, create the customer using it
+			cust = new Customer(resultSet.getInt("CustomerID"), resultSet.getString("CustomerFName"),
+					resultSet.getString("CustomerLName"), resultSet.getString("CustomerPhoneNumber"));
+			cust.setAddress(resultSet.getString("CustomerStreetAddress"), resultSet.getString("CustomerCity"),
+					resultSet.getString("CustomerState"), resultSet.getString("CustomerZipCode"));
+		}
+
+		//DO NOT FORGET TO CLOSE YOUR CONNECTION
+		conn.close();
+		return cust;
+
 	}
 
 	public static ArrayList<Topping> getToppingList() throws SQLException, IOException {
@@ -508,82 +546,50 @@ public final class DBNinja {
 
 	public static double getBaseCustPrice(String size, String crust) throws SQLException, IOException {
 		connect_to_db();
-		/*
-		 * Query the database fro the base customer price for that size and crust pizza.
-		 * 
-		 */
 
-		String sqlQuery = "SELECT Base_Price_And_CostBasePrice FROM base_price_and_cost " +
-				"WHERE Base_Price_And_CostPizzaSize = ? AND Base_Price_And_CostCrustType = ?";
-		PreparedStatement ps = conn.prepareStatement(sqlQuery);
+		/* 
+		 * Query the database for the base customer price for that size and crust pizza.
+		 * 
+		*/
+		double baseCustPrice = 0.0;
+		String query = "SELECT Base_Price_And_CostBasePrice FROM base_price_and_cost " +
+				"WHERE Base_Price_And_CostPizzaSize = ? AND Base_Price_And_CostCrustType = ?;";
+		PreparedStatement ps = conn.prepareStatement(query);
 		ps.setString(1, size);
 		ps.setString(2, crust);
-
-		ResultSet rs = ps.executeQuery();
-
-		if (rs.next()) {
-			double custPrice = rs.getDouble("Base_Price_And_CostBasePrice");
-			conn.close();
-			return (custPrice);
-		} else {
-			conn.close();
-			return 0.0;
+		ResultSet resultSet = ps.executeQuery();
+		while(resultSet.next()) {
+			baseCustPrice = resultSet.getDouble("Base_Price_And_CostBasePrice");
 		}
+
+		//DO NOT FORGET TO CLOSE YOUR CONNECTION
+		conn.close();
+		return baseCustPrice;
+
 	}
 
 	public static double getBaseBusPrice(String size, String crust) throws SQLException, IOException {
 		connect_to_db();
 		/*
-		 * Query the database fro the base business price for that size and crust pizza.
-		 * 
+
+		 * Query the database for the base business price for that size and crust pizza.
+		 *
 		 */
-
-		// DO NOT FORGET TO CLOSE YOUR CONNECTION
-
-		String sqlQuery = "SELECT Base_Price_And_CostBaseCost FROM base_price_and_cost " +
-				"WHERE Base_Price_And_CostPizzaSize = ? AND Base_Price_And_CostCrustType = ?";
-		PreparedStatement ps = conn.prepareStatement(sqlQuery);
+		double baseBusPrice = 0.0;
+		String query = "SELECT Base_Price_And_CostBaseCost FROM base_price_and_cost " +
+				"WHERE Base_Price_And_CostPizzaSize = ? AND Base_Price_And_CostCrustType = ?;";
+		PreparedStatement ps = conn.prepareStatement(query);
 		ps.setString(1, size);
 		ps.setString(2, crust);
-
-		ResultSet rs = ps.executeQuery();
-
-		if (rs.next()) {
-			double bizPrice = rs.getDouble("Base_Price_And_CostBaseCost");
-			conn.close();
-			return (bizPrice);
-		} else {
-			conn.close();
-			return 0.0;
+		ResultSet resultSet = ps.executeQuery();
+		while(resultSet.next()) {
+			baseBusPrice = resultSet.getDouble("Base_Price_And_CostBaseCost");
 		}
 
-	}
+		//DO NOT FORGET TO CLOSE YOUR CONNECTION
+		conn.close();
+		return baseBusPrice;
 
-	public static double calculateToppingCost(Map<Topping, Boolean> ToppingsUsed) {
-		// Query for Cost to Business
-
-		double cost = 0.0;
-		for (Topping t : ToppingsUsed.keySet()) {
-			double topCost = t.getBusPrice();
-			if (ToppingsUsed.get(t))
-				topCost *= 2;
-			cost += topCost;
-		}
-		return cost;
-	}
-
-	public static double calculateToppingPrice(Map<Topping, Boolean> ToppingsUsed) {
-		// Query for cost to Customer
-
-		double price = 0.0;
-		for (Topping t : ToppingsUsed.keySet()) {
-			double topPrice = t.getCustPrice();
-			if (ToppingsUsed.get(t))
-				topPrice *= 2;
-			price += topPrice;
-		}
-
-		return price;
 	}
 
 	public static void printInventory() throws SQLException, IOException {
@@ -646,8 +652,19 @@ public final class DBNinja {
 		 * The result should be readable and sorted as indicated in the prompt.
 		 * 
 		 */
+		String query = "SELECT * FROM ToppingPopularity;";
+		PreparedStatement ps = conn.prepareStatement(query);
+		ResultSet resultSet = ps.executeQuery();
 
-		// DO NOT FORGET TO CLOSE YOUR CONNECTION
+
+		System.out.println("Topping\tToppingCount");
+		while(resultSet.next()) {
+			System.out.println(resultSet.getString("Topping") + "\t" + resultSet.getString("ToppingCount"));
+		}
+
+		//DO NOT FORGET TO CLOSE YOUR CONNECTION
+		conn.close();
+
 	}
 
 	public static void printProfitByPizzaReport() throws SQLException, IOException {
@@ -661,10 +678,23 @@ public final class DBNinja {
 		 * 
 		 */
 
-		// DO NOT FORGET TO CLOSE YOUR CONNECTION
-	}
+		String query = "SELECT * FROM ProfitByPizza;";
+		PreparedStatement ps = conn.prepareStatement(query);
+		ResultSet resultSet = ps.executeQuery();
 
-	public static void printProfitByOrderType() throws SQLException, IOException {
+		System.out.println("Pizza Size\tPizza Crust\tProfit\tLastOrderDate");
+		while(resultSet.next()) {
+			System.out.println(resultSet.getString("Size") + "\t" + resultSet.getString("Crust") +
+					"\t" + resultSet.getString("Profit") + "\t" + resultSet.getString("OrderMonth"));
+		}
+
+		//DO NOT FORGET TO CLOSE YOUR CONNECTION
+		conn.close();
+	}
+	
+	public static void printProfitByOrderType() throws SQLException, IOException
+	{
+
 		connect_to_db();
 		/*
 		 * Prints the ProfitByOrderType view. Remember that this view
@@ -675,11 +705,27 @@ public final class DBNinja {
 		 * 
 		 */
 
-		// DO NOT FORGET TO CLOSE YOUR CONNECTION
-	}
+		String query = "SELECT * FROM ProfitByOrderType;";
+		PreparedStatement ps = conn.prepareStatement(query);
+		ResultSet resultSet = ps.executeQuery();
 
-	public static String getCustomerName(int CustID) throws SQLException, IOException {
-		/*
+		System.out.println("OrderType\tOrder Month\tTotalOrderPrice\tTotalOrderCost\tProfit");
+		while(resultSet.next()) {
+			System.out.println(resultSet.getString("customerType") + "\t" +
+					resultSet.getString("OrderMonth") + "\t" + resultSet.getString("TotalOrderPrice")
+					+ "\t" + resultSet.getString("TotalOrderCost") + "\t" + resultSet.getString("Profit"));
+		}
+
+		//DO NOT FORGET TO CLOSE YOUR CONNECTION
+		conn.close();
+	}
+	
+	
+	
+	public static String getCustomerName(int CustID) throws SQLException, IOException
+	{
+	/*
+
 		 * This is a helper method to fetch and format the name of a customer
 		 * based on a customer ID. This is an example of how to interact with
 		 * your database from Java. It's used in the model solution for this

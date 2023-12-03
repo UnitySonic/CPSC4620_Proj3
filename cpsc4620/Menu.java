@@ -213,7 +213,10 @@ public class Menu {
 		/*
 		 * Simply print out all of the customers from the database.
 		 */
-
+		ArrayList<Customer> customerList = DBNinja.getCustomerList();
+		for(Customer customer : customerList) {
+			System.out.println(customer.toString());
+		}
 	}
 
 	// Enter a new customer in the database
@@ -521,9 +524,22 @@ public class Menu {
 		 */
 
 		// User Input Prompts...
-		System.out.println(
-				"Which report do you wish to print? Enter\n(a) ToppingPopularity\n(b) ProfitByPizza\n(c) ProfitByOrderType:");
-		System.out.println("I don't understand that input... returning to menu...");
+
+		System.out.println("Which report do you wish to print? Enter\n(a) ToppingPopularity\n(b) ProfitByPizza\n(c) ProfitByOrderType:");
+		String choice = reader.readLine();
+		if(!choice.equals("a") && !choice.equals("b") && !choice.equals("c")) {
+			System.out.println("I don't understand that input... returning to menu...");
+			return;
+		}
+		if(choice.equals("a")) {
+			DBNinja.printToppingPopReport();
+		}
+		else if(choice.equals("b")) {
+			DBNinja.printProfitByPizzaReport();
+		}
+		else {
+			DBNinja.printProfitByOrderType();
+		}
 
 	}
 
