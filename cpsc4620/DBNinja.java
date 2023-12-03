@@ -391,31 +391,45 @@ public final class DBNinja {
 	public static double getBaseCustPrice(String size, String crust) throws SQLException, IOException {
 		connect_to_db();
 		/* 
-		 * Query the database fro the base customer price for that size and crust pizza.
+		 * Query the database for the base customer price for that size and crust pizza.
 		 * 
 		*/
-		
-		
-		
-		
-		
-		
+		double baseCustPrice = 0.0;
+		String query = "SELECT Base_Price_And_CostBasePrice FROM base_price_and_cost " +
+				"WHERE Base_Price_And_CostPizzaSize = ? AND Base_Price_And_CostCrustType = ?;";
+		PreparedStatement ps = conn.prepareStatement(query);
+		ps.setString(1, size);
+		ps.setString(2, crust);
+		ResultSet resultSet = ps.executeQuery();
+		while(resultSet.next()) {
+			baseCustPrice = resultSet.getDouble("Base_Price_And_CostBasePrice");
+		}
+
 		//DO NOT FORGET TO CLOSE YOUR CONNECTION
-		return 0.0;
+		conn.close();
+		return baseCustPrice;
 	}
 
 	public static double getBaseBusPrice(String size, String crust) throws SQLException, IOException {
 		connect_to_db();
-		/* 
-		 * Query the database fro the base business price for that size and crust pizza.
-		 * 
-		*/
-		
-		
-		
-		
+		/*
+		 * Query the database for the base business price for that size and crust pizza.
+		 *
+		 */
+		double baseBusPrice = 0.0;
+		String query = "SELECT Base_Price_And_CostBaseCost FROM base_price_and_cost " +
+				"WHERE Base_Price_And_CostPizzaSize = ? AND Base_Price_And_CostCrustType = ?;";
+		PreparedStatement ps = conn.prepareStatement(query);
+		ps.setString(1, size);
+		ps.setString(2, crust);
+		ResultSet resultSet = ps.executeQuery();
+		while(resultSet.next()) {
+			baseBusPrice = resultSet.getDouble("Base_Price_And_CostBaseCost");
+		}
+
 		//DO NOT FORGET TO CLOSE YOUR CONNECTION
-		return 0.0;
+		conn.close();
+		return baseBusPrice;
 	}
 
 	public static void printInventory() throws SQLException, IOException {
