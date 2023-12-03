@@ -1,7 +1,6 @@
 package cpsc4620;
 
-public class Topping 
-{
+public class Topping {
 	private int TopID;
 	private String TopName;
 	private double PerAMT;
@@ -10,11 +9,11 @@ public class Topping
 	private double XLAMT;
 	private double CustPrice;
 	private double BusPrice;
-	private int MinINVT;
-	private int CurINVT;
-	
+	private double MinINVT;
+	private double CurINVT;
+
 	public Topping(int topID, String topName, double perAMT, double medAMT, double lgAMT, double xLAMT,
-			double custPrice, double busPrice, int minINVT, int curINVT) {
+			double custPrice, double busPrice, double minINVT, double curINVT) {
 		TopID = topID;
 		TopName = topName;
 		PerAMT = perAMT;
@@ -59,11 +58,11 @@ public class Topping
 		return BusPrice;
 	}
 
-	public int getMinINVT() {
+	public double getMinINVT() {
 		return MinINVT;
 	}
 
-	public int getCurINVT() {
+	public double getCurINVT() {
 		return CurINVT;
 	}
 
@@ -113,7 +112,5 @@ public class Topping
 				+ ", LgAMT=" + LgAMT + ", XLAMT=" + XLAMT + ", CustPrice=" + CustPrice + ", BusPrice=" + BusPrice
 				+ ", MinINVT=" + MinINVT + ", CurINVT=" + CurINVT + "]";
 	}
-	
-	
 
 }
