@@ -15,19 +15,18 @@ import java.util.ArrayList;
 public class DBConnector {
 
     // enter your user name here
-    protected static String user = "";
+    protected static String user = "admin";
     // enter your password here
-    protected static String password = "";
+    protected static String password = "password";
     // enter your database name here
-    private static String database_name = "";
+    private static String database_name = "Pizzeria";
     // Do not change the port. 3306 is the default MySQL port
-    private static String url = "";
+    private static String url = "jdbc:mysql://pizzeria.c62ttsxbsk0d.us-east-1.rds.amazonaws.com:3306";
     private static Connection conn;
-
 
     /**
      * This function will handle the connection to the database
-     *
+     * 
      * @return true if the connection was successfully made
      * @throws SQLException
      * @throws IOException
