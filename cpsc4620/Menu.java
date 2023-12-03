@@ -90,16 +90,6 @@ public class Menu {
 
 	}
 
-	// prompt user to enter yes (y) or no (n) for a choice
-	public static String askYesOrNo() throws SQLException, IOException {
-		String answer = reader.readLine();
-		while (!answer.equals("y") && !answer.equals("n")) {
-			System.out.println("Invalid choice. Please enter y or n.");
-			answer = reader.readLine();
-		}
-		return answer;
-	}
-
 	// allow for a new order to be placed
 	public static void EnterOrder() throws SQLException, IOException {
 		/*
@@ -331,7 +321,7 @@ public class Menu {
 		/*
 		 * Print the inventory. Display the topping ID, name, and current inventory
 		 */
-
+		DBNinja.printInventory();
 	}
 
 	public static void AddInventory() throws SQLException, IOException {
@@ -341,10 +331,44 @@ public class Menu {
 		 */
 
 		// User Input Prompts...
+		ViewInventoryLevels();
 		System.out.println("Which topping do you want to add inventory to? Enter the number: ");
-		System.out.println("How many units would you like to add? ");
-		System.out.println("Incorrect entry, not an option");
+		String toppingID = reader.readLine();
+		// Check that the ID exists in the database
+		Topping topping = DBNinja.findToppingByID(toppingID);
+		while(topping == null) {
+			System.out.println("Incorrect entry, not an option");
+			System.out.println("Which topping do you want to add inventory to? Enter the number: ");
+			toppingID = reader.readLine();
+			topping = DBNinja.findToppingByID(toppingID);
+		}
 
+		System.out.println("How many units would you like to add? ");
+		String option = reader.readLine();
+		int unitsToAdd = 0;
+		// Handle exceptions with parseInt
+		try {
+			unitsToAdd = Integer.parseInt(option);
+		}
+		catch(Exception ignored) {
+
+		}
+		while(unitsToAdd <= 0) {
+			// Prompt the user again if the units to add is not greater than 0
+			System.out.println("Incorrect entry, not an option");
+			System.out.println("How many units would you like to add? ");
+			option = reader.readLine();
+			// Handle exceptions with parseInt
+			try {
+				unitsToAdd = Integer.parseInt(option);
+			}
+			catch(Exception ignored) {
+
+			}
+		}
+
+		// Update the topping units in the database
+		DBNinja.addToInventory(topping, unitsToAdd);
 	}
 
 	// A method that builds a pizza. Used in our add new order method
@@ -386,8 +410,8 @@ public class Menu {
 				System.out.println("Enter the corresponding number: ");
 				String option = reader.readLine();
 				choice = Integer.parseInt(option);
-			} catch (Exception e) {
-				// Doesn't need to do anything actually
+			} catch (Exception ignored) {
+
 			}
 			switch (choice) {
 				case 1:
@@ -421,7 +445,7 @@ public class Menu {
 				String option = reader.readLine();
 				choice = Integer.parseInt(option);
 			} catch (Exception e) {
-				// Doesn't need to do anything actually
+				// Doesn't need to do anything
 			}
 			switch (choice) {
 				case 1:

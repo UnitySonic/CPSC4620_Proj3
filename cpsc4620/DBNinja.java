@@ -144,19 +144,7 @@ public final class DBNinja {
 
 	}
 
-	public static void useTopping(Pizza p, Topping t, boolean isDoubled) throws SQLException, IOException
-	// this method will update toppings inventory in SQL and add
-	// entities
-	// to the
-	// Pizzatops
-	// table.
-	// Pass in
-	// the p
-	// pizza
-	// that is
-	// using t
-	// topping
-	{
+	public static void useTopping(Pizza p, Topping t, boolean isDoubled) throws SQLException, IOException {
 		connect_to_db();
 		/*
 		 * This method should do 2 two things.
@@ -325,7 +313,7 @@ public final class DBNinja {
 
 	public static Discount findDiscountByName(String name) throws SQLException, IOException {
 		/*
-		 * Query the database for a discount using it's name.
+		 * Query the database for a discount using its name.
 		 * If found, then return an OrderDiscount object for the discount.
 		 * If it's not found....then return null
 		 * 
@@ -369,9 +357,8 @@ public final class DBNinja {
 		 * 
 		 */
 
-		ArrayList<Customer> customers = new ArrayList<Customer>();
+		ArrayList<Customer> customerList = new ArrayList<Customer>();
 		Customer cust = null;
-		String name = "";
 		// Query the database
 		String query = "SELECT * FROM customer;";
 		PreparedStatement ps = conn.prepareStatement(query);
@@ -383,12 +370,12 @@ public final class DBNinja {
 					resultSet.getString("CustomerLName"), resultSet.getString("CustomerPhoneNumber"));
 			cust.setAddress(resultSet.getString("CustomerStreetAddress"), resultSet.getString("CustomerCity"),
 					resultSet.getString("CustomerState"), resultSet.getString("CustomerZipCode"));
-			customers.add(cust);
+			customerList.add(cust);
 		}
 		
 		//DO NOT FORGET TO CLOSE YOUR CONNECTION
 		conn.close();
-		return customers;
+		return customerList;
 	}
 
 	public static Customer findCustomerByPhone(String phoneNumber) throws SQLException, IOException {
@@ -418,7 +405,6 @@ public final class DBNinja {
 		//DO NOT FORGET TO CLOSE YOUR CONNECTION
 		conn.close();
 		return cust;
-
 	}
 
 	public static ArrayList<Topping> getToppingList() throws SQLException, IOException {
@@ -429,20 +415,71 @@ public final class DBNinja {
 		 * Don't forget to order the data coming from the database appropriately.
 		 * 
 		 */
+		ArrayList<Topping> toppingList = new ArrayList<Topping>();
+		Topping topping = null;
+		// Query the database
+		String query = "SELECT * FROM topping;";
+		PreparedStatement ps = conn.prepareStatement(query);
+		ResultSet resultSet = ps.executeQuery();
+		// Get all customers from the table
+		while(resultSet.next()) {
+			// If a topping is found, create the object
+			int toppingID = resultSet.getInt("ToppingID");
+			String toppingName = resultSet.getString("ToppingName");
+			double toppingPrice = resultSet.getDouble("ToppingPricePerUnit");
+			double toppingCost = resultSet.getDouble("ToppingCostPerUnit");
+			double currentInventory = resultSet.getDouble("ToppingCurrentInventory");
+			double minimumInventory = resultSet.getDouble("ToppingMinimumInventory");
+			double ToppingSmallSizeUnits = resultSet.getDouble("ToppingSmallSizeUnits");
+			double ToppingMediumSizeUnits = resultSet.getDouble("ToppingMediumSizeUnits");
+			double ToppingLargeSizeUnits = resultSet.getDouble("ToppingLargeSizeUnits");
+			double ToppingXLargeSizeUnits = resultSet.getDouble("ToppingXLargeSizeUnits");
+
+			topping = new Topping(toppingID, toppingName, ToppingSmallSizeUnits, ToppingMediumSizeUnits,
+					ToppingLargeSizeUnits, ToppingXLargeSizeUnits, toppingPrice, toppingCost, minimumInventory,
+					currentInventory);
+			toppingList.add(topping);
+		}
 
 		// DO NOT FORGET TO CLOSE YOUR CONNECTION
-		return null;
+		conn.close();
+		return toppingList;
 	}
 
-	public static Topping findToppingByName(String name) {
+	public static Topping findToppingByName(String name) throws SQLException, IOException {
+		connect_to_db();
 		/*
-		 * Query the database for the topping using it's name.
+		 * Query the database for the topping using its name.
 		 * If found, then return a Topping object for the topping.
 		 * If it's not found....then return null
 		 * 
 		 */
+		Topping topping = null;
+		String query = "SELECT * FROM topping WHERE ToppingName = ?;";
+		PreparedStatement ps = conn.prepareStatement(query);
+		ps.setString(1, name);
+		ResultSet resultSet = ps.executeQuery();
 
-		return null;
+		while(resultSet.next()) {
+			// If a topping is matched, create the object
+			int toppingID = resultSet.getInt("ToppingID");
+			String toppingName = resultSet.getString("ToppingName");
+			double toppingPrice = resultSet.getDouble("ToppingPricePerUnit");
+			double toppingCost = resultSet.getDouble("ToppingCostPerUnit");
+			double currentInventory = resultSet.getDouble("ToppingCurrentInventory");
+			double minimumInventory = resultSet.getDouble("ToppingMinimumInventory");
+			double ToppingSmallSizeUnits = resultSet.getDouble("ToppingSmallSizeUnits");
+			double ToppingMediumSizeUnits = resultSet.getDouble("ToppingMediumSizeUnits");
+			double ToppingLargeSizeUnits = resultSet.getDouble("ToppingLargeSizeUnits");
+			double ToppingXLargeSizeUnits = resultSet.getDouble("ToppingXLargeSizeUnits");
+
+			topping = new Topping(toppingID, toppingName, ToppingSmallSizeUnits, ToppingMediumSizeUnits,
+					ToppingLargeSizeUnits, ToppingXLargeSizeUnits, toppingPrice, toppingCost, minimumInventory,
+					currentInventory);
+		}
+
+		conn.close();
+		return topping;
 	}
 
 	public static Discount findDiscountByID(String ID) throws SQLException, IOException {
@@ -466,7 +503,6 @@ public final class DBNinja {
 
 		// Check if any rows were returned
 		if (rs.next()) {
-
 			int DiscountID = rs.getInt("DiscountID");
 			String DiscountName = rs.getString("DiscountName");
 			double amountOff = rs.getDouble("DiscountDollarsOFF");
@@ -494,7 +530,6 @@ public final class DBNinja {
 		int toppingIDToCheck;
 
 		try {
-
 			toppingIDToCheck = Integer.parseInt(ID);
 		} catch (Exception e) {
 			return null;
@@ -540,8 +575,14 @@ public final class DBNinja {
 		 * Updates the quantity of the topping in the database by the amount specified.
 		 * 
 		 */
+		String query = "UPDATE topping SET ToppingCurrentInventory = ? WHERE ToppingID = ?;";
+		PreparedStatement ps = conn.prepareStatement(query);
+		ps.setDouble(1, t.getCurINVT()+quantity);
+		ps.setInt(2, t.getTopID());
+		ps.executeUpdate();
 
 		// DO NOT FORGET TO CLOSE YOUR CONNECTION
+		conn.close();
 	}
 
 	public static double getBaseCustPrice(String size, String crust) throws SQLException, IOException {
