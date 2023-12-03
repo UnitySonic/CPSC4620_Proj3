@@ -437,14 +437,17 @@ public final class DBNinja {
 		 * The result should be readable and sorted as indicated in the prompt.
 		 * 
 		 */
+		String query = "SELECT * FROM ToppingPopularity;";
+		PreparedStatement ps = conn.prepareStatement(query);
+		ResultSet resultSet = ps.executeQuery(query);
 
+		System.out.println("Topping\tToppingCount");
+		while(resultSet.next()) {
+			System.out.println(resultSet.getString("Topping") + "\t" + resultSet.getString("ToppingCount"));
+		}
 
-		
-		
-		
-		
-		
 		//DO NOT FORGET TO CLOSE YOUR CONNECTION
+		conn.close();
 	}
 	
 	public static void printProfitByPizzaReport() throws SQLException, IOException
@@ -458,12 +461,18 @@ public final class DBNinja {
 		 * The result should be readable and sorted as indicated in the prompt.
 		 * 
 		 */
-		
-		
-		
-		
-		
+		String query = "SELECT * FROM ProfitByPizza;";
+		PreparedStatement ps = conn.prepareStatement(query);
+		ResultSet resultSet = ps.executeQuery(query);
+
+		System.out.println("Pizza Size\tPizza Crust\tProfit\tLastOrderDate");
+		while(resultSet.next()) {
+			System.out.println(resultSet.getString("Size") + "\t" + resultSet.getString("Crust") +
+					"\t" + resultSet.getString("Profit") + "\t" + resultSet.getString("OrderMonth"));
+		}
+
 		//DO NOT FORGET TO CLOSE YOUR CONNECTION
+		conn.close();
 	}
 	
 	public static void printProfitByOrderType() throws SQLException, IOException
@@ -477,13 +486,19 @@ public final class DBNinja {
 		 * The result should be readable and sorted as indicated in the prompt.
 		 * 
 		 */
-		
-		
-		
-		
-		
-		
-		//DO NOT FORGET TO CLOSE YOUR CONNECTION	
+		String query = "SELECT * FROM ProfitByOrderType;";
+		PreparedStatement ps = conn.prepareStatement(query);
+		ResultSet resultSet = ps.executeQuery(query);
+
+		System.out.println("OrderType\tOrder Month\tTotalOrderPrice\tTotalOrderCost\tProfit");
+		while(resultSet.next()) {
+			System.out.println(resultSet.getString("customerType") + "\t" +
+					resultSet.getString("OrderMonth") + "\t" + resultSet.getString("TotalOrderPrice")
+					+ "\t" + resultSet.getString("TotalOrderCost") + "\t" + resultSet.getString("Profit"));
+		}
+
+		//DO NOT FORGET TO CLOSE YOUR CONNECTION
+		conn.close();
 	}
 	
 	
