@@ -210,7 +210,10 @@ public class Menu {
 		/*
 		 * Simply print out all of the customers from the database. 
 		 */
-
+		ArrayList<Customer> customerList = DBNinja.getCustomerList();
+		for(Customer customer : customerList) {
+			System.out.println(customer.toString());
+		}
 	}
 	
 

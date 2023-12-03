@@ -157,7 +157,7 @@ public final class DBNinja {
 		 */
 		final int FIRST_CUST_ID = 1;
 		// Get the number of customers from the database
-		String count_query = "SELECT COUNT(*) FROM customer";
+		String count_query = "SELECT COUNT(*) FROM customer;";
 		PreparedStatement ps = conn.prepareStatement(count_query);
 		ResultSet resultSet = ps.executeQuery(count_query);
 		int numCust = 0;
@@ -168,7 +168,7 @@ public final class DBNinja {
 		c.setCustID(numCust+FIRST_CUST_ID);
 
 		// Add the customer to the database with a prepared statement
-		String insert_query = "INSERT INTO customer (CustomerFName, CustomerLName, CustomerPhoneNumber) VALUES(?, ?, ?)";
+		String insert_query = "INSERT INTO customer (CustomerFName, CustomerLName, CustomerPhoneNumber) VALUES(?, ?, ?);";
 		ps = conn.prepareStatement(insert_query);
 		ps.setString(1, c.getFName());
 		ps.setString(2, c.getLName());
@@ -286,15 +286,26 @@ public final class DBNinja {
 		 * Don't forget to order the data coming from the database appropriately.
 		 * 
 		 */
-
-
-		
-		
-		
-		
+		ArrayList<Customer> customers = new ArrayList<Customer>();
+		Customer cust = null;
+		String name = "";
+		// Query the database
+		String query = "SELECT * FROM customer;";
+		PreparedStatement ps = conn.prepareStatement(query);
+		ResultSet resultSet = ps.executeQuery(query);
+		// Get all customers from the table
+		while(resultSet.next()) {
+			// Add each customer to the list
+			cust = new Customer(resultSet.getInt("CustomerID"), resultSet.getString("CustomerFName"),
+					resultSet.getString("CustomerLName"), resultSet.getString("CustomerPhoneNumber"));
+			cust.setAddress(resultSet.getString("CustomerStreetAddress"), resultSet.getString("CustomerCity"),
+					resultSet.getString("CustomerState"), resultSet.getString("CustomerZipCode"));
+			customers.add(cust);
+		}
 		
 		//DO NOT FORGET TO CLOSE YOUR CONNECTION
-		return null;
+		conn.close();
+		return customers;
 	}
 
 	public static Customer findCustomerByPhone(String phoneNumber){
