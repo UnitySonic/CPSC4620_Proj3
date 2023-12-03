@@ -102,7 +102,7 @@ public final class DBNinja {
 		 * - connect the topping to the pizza
 		 *   What that means will be specific to your implementatinon.
 		 * 
-		 * Ideally, you should't let toppings go negative....but this should be dealt with BEFORE calling this method.
+		 * Ideally, you shouldn't let toppings go negative....but this should be dealt with BEFORE calling this method.
 		 * 
 		 */
 		
@@ -159,7 +159,7 @@ public final class DBNinja {
 		// Get the number of customers from the database
 		String count_query = "SELECT COUNT(*) FROM customer;";
 		PreparedStatement ps = conn.prepareStatement(count_query);
-		ResultSet resultSet = ps.executeQuery(count_query);
+		ResultSet resultSet = ps.executeQuery();
 		int numCust = 0;
 		while(resultSet.next()) {
 			numCust = resultSet.getInt(1);
@@ -292,7 +292,7 @@ public final class DBNinja {
 		// Query the database
 		String query = "SELECT * FROM customer;";
 		PreparedStatement ps = conn.prepareStatement(query);
-		ResultSet resultSet = ps.executeQuery(query);
+		ResultSet resultSet = ps.executeQuery();
 		// Get all customers from the table
 		while(resultSet.next()) {
 			// Add each customer to the list
@@ -308,19 +308,31 @@ public final class DBNinja {
 		return customers;
 	}
 
-	public static Customer findCustomerByPhone(String phoneNumber){
+	public static Customer findCustomerByPhone(String phoneNumber) throws SQLException, IOException {
+		connect_to_db();
 		/*
 		 * Query the database for a customer using a phone number.
 		 * If found, then return a Customer object for the customer.
 		 * If it's not found....then return null
 		 *  
 		 */
-		
+		Customer cust = null;
+		// Get the customer with the provided phone number
+		String query = "SELECT * FROM customer WHERE CustomerPhoneNumber = ?;";
+		PreparedStatement ps = conn.prepareStatement(query);
+		ps.setString(1, phoneNumber);
+		ResultSet resultSet = ps.executeQuery();
+		while(resultSet.next()) {
+			// If there is a match, create the customer using it
+			cust = new Customer(resultSet.getInt("CustomerID"), resultSet.getString("CustomerFName"),
+					resultSet.getString("CustomerLName"), resultSet.getString("CustomerPhoneNumber"));
+			cust.setAddress(resultSet.getString("CustomerStreetAddress"), resultSet.getString("CustomerCity"),
+					resultSet.getString("CustomerState"), resultSet.getString("CustomerZipCode"));
+		}
 
-
-
-
-		 return null;
+		//DO NOT FORGET TO CLOSE YOUR CONNECTION
+		conn.close();
+		return cust;
 	}
 
 
@@ -439,7 +451,7 @@ public final class DBNinja {
 		 */
 		String query = "SELECT * FROM ToppingPopularity;";
 		PreparedStatement ps = conn.prepareStatement(query);
-		ResultSet resultSet = ps.executeQuery(query);
+		ResultSet resultSet = ps.executeQuery();
 
 		System.out.println("Topping\tToppingCount");
 		while(resultSet.next()) {
@@ -463,7 +475,7 @@ public final class DBNinja {
 		 */
 		String query = "SELECT * FROM ProfitByPizza;";
 		PreparedStatement ps = conn.prepareStatement(query);
-		ResultSet resultSet = ps.executeQuery(query);
+		ResultSet resultSet = ps.executeQuery();
 
 		System.out.println("Pizza Size\tPizza Crust\tProfit\tLastOrderDate");
 		while(resultSet.next()) {
@@ -488,7 +500,7 @@ public final class DBNinja {
 		 */
 		String query = "SELECT * FROM ProfitByOrderType;";
 		PreparedStatement ps = conn.prepareStatement(query);
-		ResultSet resultSet = ps.executeQuery(query);
+		ResultSet resultSet = ps.executeQuery();
 
 		System.out.println("OrderType\tOrder Month\tTotalOrderPrice\tTotalOrderCost\tProfit");
 		while(resultSet.next()) {
