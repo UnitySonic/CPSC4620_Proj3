@@ -43,7 +43,12 @@ public class Menu {
 		PrintMenu();
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 		String option = reader.readLine();
-		menu_option = Integer.parseInt(option);
+		try {
+			menu_option = Integer.parseInt(option);
+		}
+		catch (Exception ignored) {
+
+		}
 
 		while (menu_option != 9) {
 			switch (menu_option) {
@@ -75,7 +80,12 @@ public class Menu {
 			}
 			PrintMenu();
 			option = reader.readLine();
-			menu_option = Integer.parseInt(option);
+			try {
+				menu_option = Integer.parseInt(option);
+			}
+			catch (Exception ignored) {
+
+			}
 		}
 
 	}
@@ -460,7 +470,7 @@ public class Menu {
 
 			if (DBNinja.checkIfEnoughTopping(Integer.parseInt(inputtedTopID), size, requestExtra))
 				toppingsUsed.put(selectedTopping, requestExtra);
-			// Theen Add topping
+			// Then Add topping
 			else
 				System.out.println("We don't have enough of that topping to add it...");
 		}
