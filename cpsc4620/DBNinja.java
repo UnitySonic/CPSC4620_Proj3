@@ -5,10 +5,7 @@ import java.sql.*;
 import java.sql.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -93,7 +90,7 @@ public final class DBNinja {
 
 		// Add common information to the orders table
 		String orderType = o.getOrderType();
-		String orderStatus = "open";
+		String orderStatus = "Open";
 		String orderDate = o.getDate();
 
 		// Convert the date from a string to a timestamp
@@ -103,7 +100,7 @@ public final class DBNinja {
 		Instant instant = zdt.toInstant();
 		Timestamp timestamp = new Timestamp(instant.toEpochMilli());
 		if(o.getIsComplete() == 1) {
-			orderStatus = "complete";
+			orderStatus = "Completed";
 		}
 
 		// Insert common information into the orders table
@@ -396,7 +393,7 @@ public final class DBNinja {
 		 * 
 		 */
 		o.setIsComplete(1);
-		String query = "UPDATE customer_order SET Customer_OrderStatus = 'complete' WHERE Customer_OrderID = ?;";
+		String query = "UPDATE customer_order SET Customer_OrderStatus = 'Completed' WHERE Customer_OrderID = ?;";
 		PreparedStatement ps = conn.prepareStatement(query);
 		ps.setInt(1, o.getOrderID());
 		ps.executeUpdate();
@@ -427,18 +424,18 @@ public final class DBNinja {
 			query = "SELECT * FROM customer_order WHERE Customer_OrderStatus != 'Completed';";
 		}
 		PreparedStatement ps = conn.prepareStatement(query);
-		ResultSet resultSet = ps.executeQuery();
+		ResultSet orderResultSet = ps.executeQuery();
 		// Get all orders from the table
-		while (resultSet.next()) {
-			int orderID = resultSet.getInt("Customer_OrderID");
-			double custPrice = resultSet.getDouble("Customer_OrderCustomerPrice");
-			double busPrice = resultSet.getDouble("Customer_OrderBusinessCost");
-			String orderType = resultSet.getString("Customer_OrderType");
+		while (orderResultSet.next()) {
+			int orderID = orderResultSet.getInt("Customer_OrderID");
+			double custPrice = orderResultSet.getDouble("Customer_OrderCustomerPrice");
+			double busPrice = orderResultSet.getDouble("Customer_OrderBusinessCost");
+			String orderType = orderResultSet.getString("Customer_OrderType");
 			int isComplete = 0;
-			if(resultSet.getString("Customer_OrderStatus").equals("Completed")) {
+			if(orderResultSet.getString("Customer_OrderStatus").equals("Completed")) {
 				isComplete = 1;
 			}
-			Timestamp timestamp = resultSet.getTimestamp("Customer_OrderTimestamp");
+			Timestamp timestamp = orderResultSet.getTimestamp("Customer_OrderTimestamp");
 			String timestampStr = timestamp.toString();
 
 			switch(orderType) {
@@ -447,11 +444,11 @@ public final class DBNinja {
 					query = "SELECT Dine_InTable_Number FROM dine_in WHERE Dine_InOrderID = ?;";
 					ps = conn.prepareStatement(query);
 					ps.setInt(1, orderID);
-					resultSet = ps.executeQuery();
+					ResultSet subTypeResultSet = ps.executeQuery();
 					int tableNum = 0;
-					while(resultSet.next()) {
+					while(subTypeResultSet.next()) {
 						// Get the table number
-						tableNum = resultSet.getInt("Dine_InTable_Number");
+						tableNum = subTypeResultSet.getInt("Dine_InTable_Number");
 					}
 
 					order = new DineinOrder(orderID, 0, timestampStr, custPrice, busPrice, isComplete, tableNum);
@@ -461,11 +458,11 @@ public final class DBNinja {
 					query = "SELECT PickupCustomer_ID FROM pickup WHERE PickupOrder_ID = ?;";
 					ps = conn.prepareStatement(query);
 					ps.setInt(1, orderID);
-					resultSet = ps.executeQuery();
+					subTypeResultSet = ps.executeQuery();
 					int custID = 0;
-					while(resultSet.next()) {
+					while(subTypeResultSet.next()) {
 						// Get the Customer ID
-						custID = resultSet.getInt("PickupCustomer_ID");
+						custID = subTypeResultSet.getInt("PickupCustomer_ID");
 					}
 
 					order = new PickupOrder(orderID, custID, timestampStr, custPrice, busPrice, isComplete, isComplete);
@@ -475,22 +472,22 @@ public final class DBNinja {
 					query = "SELECT DeliveryCustomerID FROM delivery WHERE DeliveryOrderID = ?;";
 					ps = conn.prepareStatement(query);
 					ps.setInt(1, orderID);
-					resultSet = ps.executeQuery();
+					subTypeResultSet = ps.executeQuery();
 					custID = 0;
-					while(resultSet.next()) {
+					while(subTypeResultSet.next()) {
 						// Get the Customer ID
-						custID = resultSet.getInt("DeliveryCustomerID");
+						custID = subTypeResultSet.getInt("DeliveryCustomerID");
 					}
 
 					// Query the database for the customer's address
 					query = "SELECT CustomerStreetAddress FROM customer WHERE CustomerID = ?;";
 					ps = conn.prepareStatement(query);
 					ps.setInt(1, custID);
-					resultSet = ps.executeQuery();
+					subTypeResultSet = ps.executeQuery();
 					String address = "";
-					while(resultSet.next()) {
+					while(subTypeResultSet.next()) {
 						// Get the customer's address
-						address = resultSet.getString("CustomerStreetAddress");
+						address = subTypeResultSet.getString("CustomerStreetAddress");
 					}
 
 					order = new DeliveryOrder(orderID, custID, timestampStr, custPrice, busPrice, isComplete, address);
@@ -518,31 +515,32 @@ public final class DBNinja {
 		String query = "SELECT * FROM customer_order " +
 				"HAVING Customer_OrderID = (SELECT MAX(Customer_OrderID) FROM customer_order);";
 		PreparedStatement ps = conn.prepareStatement(query);
-		ResultSet resultSet = ps.executeQuery();
-		while(resultSet.next()) {
+		ResultSet orderResultSet = ps.executeQuery();
+
+		while(orderResultSet.next()) {
 			// Get general order information
-			int orderID = resultSet.getInt("Customer_OrderID");
-			double busPrice = resultSet.getDouble("Customer_OrderBusinessCost");
-			double custPrice = resultSet.getDouble("Customer_OrderCustomerPrice");
-			Timestamp timestamp = resultSet.getTimestamp("Customer_OrderTimestamp");
+			int orderID = orderResultSet.getInt("Customer_OrderID");
+			double busPrice = orderResultSet.getDouble("Customer_OrderBusinessCost");
+			double custPrice = orderResultSet.getDouble("Customer_OrderCustomerPrice");
+			Timestamp timestamp = orderResultSet.getTimestamp("Customer_OrderTimestamp");
 			String timestampStr = timestamp.toString();
 			int isComplete = 0;
-			if(resultSet.getString("Customer_OrderStatus").equals("Completed")){
+			if(orderResultSet.getString("Customer_OrderStatus").equals("Completed")){
 				isComplete = 1;
 			}
 
-			String orderType = resultSet.getString("Customer_OrderType");
+			String orderType = orderResultSet.getString("Customer_OrderType");
 			switch (orderType) {
 				case DBNinja.dine_in:
 					// Query dine-in table for the table number
 					query = "SELECT Dine_InTable_Number FROM dine_in WHERE Dine_InOrderID = ?;";
 					ps = conn.prepareStatement(query);
 					ps.setInt(1, orderID);
-					resultSet = ps.executeQuery();
+					ResultSet subTypeResultSet = ps.executeQuery();
 					int tableNum = 0;
-					while(resultSet.next()) {
+					while(subTypeResultSet.next()) {
 						// Get the table number
-						tableNum = resultSet.getInt("Dine_InTable_Number");
+						tableNum = subTypeResultSet.getInt("Dine_InTable_Number");
 					}
 
 					lastOrder = new DineinOrder(orderID, 0, timestampStr, custPrice, busPrice, isComplete, tableNum);
@@ -552,11 +550,11 @@ public final class DBNinja {
 					query = "SELECT PickupCustomer_ID FROM pickup WHERE PickupOrder_ID = ?;";
 					ps = conn.prepareStatement(query);
 					ps.setInt(1, orderID);
-					resultSet = ps.executeQuery();
+					subTypeResultSet = ps.executeQuery();
 					int custID = 0;
-					while(resultSet.next()) {
+					while(subTypeResultSet.next()) {
 						// Get the Customer ID
-						custID = resultSet.getInt("PickupCustomer_ID");
+						custID = subTypeResultSet.getInt("PickupCustomer_ID");
 					}
 
 					lastOrder = new PickupOrder(orderID, custID, timestampStr, custPrice, busPrice, isComplete, isComplete);
@@ -566,22 +564,22 @@ public final class DBNinja {
 					query = "SELECT DeliveryCustomerID FROM delivery WHERE DeliveryOrderID = ?;";
 					ps = conn.prepareStatement(query);
 					ps.setInt(1, orderID);
-					resultSet = ps.executeQuery();
+					subTypeResultSet = ps.executeQuery();
 					custID = 0;
-					while(resultSet.next()) {
+					while(subTypeResultSet.next()) {
 						// Get the Customer ID
-						custID = resultSet.getInt("DeliveryCustomerID");
+						custID = subTypeResultSet.getInt("DeliveryCustomerID");
 					}
 
 					// Query the database for the customer's address
 					query = "SELECT CustomerStreetAddress FROM customer WHERE CustomerID = ?;";
 					ps = conn.prepareStatement(query);
 					ps.setInt(1, custID);
-					resultSet = ps.executeQuery();
+					subTypeResultSet = ps.executeQuery();
 					String address = "";
-					while(resultSet.next()) {
+					while(subTypeResultSet.next()) {
 						// Get the customer's address
-						address = resultSet.getString("CustomerStreetAddress");
+						address = subTypeResultSet.getString("CustomerStreetAddress");
 					}
 
 					lastOrder = new DeliveryOrder(orderID, custID, timestampStr, custPrice, busPrice, isComplete, address);
@@ -595,13 +593,98 @@ public final class DBNinja {
 		return lastOrder;
 	}
 
-	public static ArrayList<Order> getOrdersByDate(String date) {
+	public static ArrayList<Order> getOrdersByDate(String date) throws SQLException, IOException {
+		connect_to_db();
 		/*
 		 * Query the database for ALL the orders placed on a specific date
 		 * and return a list of those orders.
 		 * 
 		 */
 
+		ArrayList<Order> orderList = new ArrayList<Order>();
+		Order order = null;
+		// Query the database for all orders placed since the provided date
+		String query = "SELECT * FROM customer_order WHERE DATE(Customer_OrderTimestamp) >= ?;";
+		PreparedStatement ps = conn.prepareStatement(query);
+
+		// Convert the date string to a date object
+		ps.setString(1, date);
+		ResultSet orderResultSet = ps.executeQuery();
+
+		// Get all orders from the table
+		while (orderResultSet.next()) {
+			int orderID = orderResultSet.getInt("Customer_OrderID");
+			double custPrice = orderResultSet.getDouble("Customer_OrderCustomerPrice");
+			double busPrice = orderResultSet.getDouble("Customer_OrderBusinessCost");
+			String orderType = orderResultSet.getString("Customer_OrderType");
+			int isComplete = 0;
+			if(orderResultSet.getString("Customer_OrderStatus").equals("Completed")) {
+				isComplete = 1;
+			}
+			Timestamp timestamp = orderResultSet.getTimestamp("Customer_OrderTimestamp");
+			String timestampStr = timestamp.toString();
+
+			switch(orderType) {
+				case DBNinja.dine_in:
+					// Query dine-in table for the table number
+					query = "SELECT Dine_InTable_Number FROM dine_in WHERE Dine_InOrderID = ?;";
+					ps = conn.prepareStatement(query);
+					ps.setInt(1, orderID);
+					ResultSet subTypeResultSet = ps.executeQuery();
+					int tableNum = 0;
+					while(subTypeResultSet.next()) {
+						// Get the table number
+						tableNum = subTypeResultSet.getInt("Dine_InTable_Number");
+					}
+
+					order = new DineinOrder(orderID, 0, timestampStr, custPrice, busPrice, isComplete, tableNum);
+					break;
+				case DBNinja.pickup:
+					// Query pickup table for the Customer ID
+					query = "SELECT PickupCustomer_ID FROM pickup WHERE PickupOrder_ID = ?;";
+					ps = conn.prepareStatement(query);
+					ps.setInt(1, orderID);
+					subTypeResultSet = ps.executeQuery();
+					int custID = 0;
+					while(subTypeResultSet.next()) {
+						// Get the Customer ID
+						custID = subTypeResultSet.getInt("PickupCustomer_ID");
+					}
+
+					order = new PickupOrder(orderID, custID, timestampStr, custPrice, busPrice, isComplete, isComplete);
+					break;
+				case DBNinja.delivery:
+					// Query delivery table for the Delivery ID
+					query = "SELECT DeliveryCustomerID FROM delivery WHERE DeliveryOrderID = ?;";
+					ps = conn.prepareStatement(query);
+					ps.setInt(1, orderID);
+					subTypeResultSet = ps.executeQuery();
+					custID = 0;
+					while(subTypeResultSet.next()) {
+						// Get the Customer ID
+						custID = subTypeResultSet.getInt("DeliveryCustomerID");
+					}
+
+					// Query the database for the customer's address
+					query = "SELECT CustomerStreetAddress FROM customer WHERE CustomerID = ?;";
+					ps = conn.prepareStatement(query);
+					ps.setInt(1, custID);
+					subTypeResultSet = ps.executeQuery();
+					String address = "";
+					while(subTypeResultSet.next()) {
+						// Get the customer's address
+						address = subTypeResultSet.getString("CustomerStreetAddress");
+					}
+
+					order = new DeliveryOrder(orderID, custID, timestampStr, custPrice, busPrice, isComplete, address);
+					break;
+				default:
+					break;
+			}
+			orderList.add(order);
+		}
+
+		conn.close();
 		return null;
 	}
 

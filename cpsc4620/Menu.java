@@ -66,6 +66,8 @@ public class Menu {
 					break;
 				case 4:// view order
 						// open/closed/date
+					System.out.print("Last order added was: ");
+					System.out.println(DBNinja.getLastOrder().toSimplePrint());
 					ViewOrders();
 					break;
 				case 5:// mark order as complete
@@ -375,6 +377,7 @@ public class Menu {
 
 		ArrayList<Order> orderList = null;
 		String option = "";
+		String date = "";
 		System.out.println("Would you like to:\n(a) display all orders [open or closed]\n(b) display all open orders\n" +
 				"(c) display all completed [closed] orders\n(d) display orders since a specific date");
 		option = reader.readLine();
@@ -384,11 +387,21 @@ public class Menu {
 		else if(option.equals("b")) {
 			orderList = DBNinja.getOrders(true);
 		}
-		else if(option.equals("c")){
+		else if(option.equals("c")) {
+
+		}
+		else if(option.equals("d")){
 			System.out.println("What is the date you want to restrict by? (FORMAT= YYYY-MM-DD)");
-			option = reader.readLine();
-			// check that date is correct
-			orderList = DBNinja.getOrdersByDate(option);
+			date = reader.readLine();
+			Pattern check_date = Pattern.compile("^[0-9]{4}-[0-9]{2}-[0-9]{2}$", Pattern.CASE_INSENSITIVE);
+			Matcher match_date = check_date.matcher(date);
+			// Do not accept invalid phone numbers
+			while (!match_date.find()) {
+				System.out.println("What is the date you want to restrict by? (FORMAT= YYYY-MM-DD)");
+				date = reader.readLine();
+				match_date = check_date.matcher(date);
+			}
+			orderList = DBNinja.getOrdersByDate(date);
 		}
 		else {
 			System.out.println("I don't understand that input, returning to menu");
@@ -410,6 +423,17 @@ public class Menu {
 		System.out.println("Incorrect entry, returning to menu.");
 	}
 
+	// Helper function that gets an order with a provided orderID from a list
+	// If no order is found, return null
+	public static Order findOrderInList(ArrayList<Order> orderList, int orderID) throws SQLException, IOException {
+		for(Order order : orderList) {
+			if(order.getOrderID() == orderID) {
+				return order;
+			}
+		}
+		return null;
+	}
+
 	// When an order is completed, we need to make sure it is marked as complete
 	public static void MarkOrderAsComplete() throws SQLException, IOException {
 		/*
@@ -428,10 +452,32 @@ public class Menu {
 			System.out.println("There are no open orders currently... returning to menu...");
 			return;
 		}
+		else {
+			for(Order order : openOrderList) {
+				System.out.println(order.toSimplePrint());
+			}
+		}
 
-		// Finish this
+		int orderID = 0;
+		String option = "";
 		System.out.println("Which order would you like mark as complete? Enter the OrderID: ");
-		System.out.println("Incorrect entry, not an option");
+		option = reader.readLine();
+		try {
+			orderID = Integer.parseInt(option);
+		}
+		catch(Exception ignored) {
+			System.out.println("Incorrect entry, not an option");
+			return;
+		}
+
+		// Find an open order with the given orderID
+		Order markComplete = findOrderInList(openOrderList, orderID);
+		if(markComplete != null) {
+			DBNinja.completeOrder(markComplete);
+		}
+		else {
+			System.out.println("Incorrect entry, not an option");
+		}
 	}
 
 	public static void ViewInventoryLevels() throws SQLException, IOException {
