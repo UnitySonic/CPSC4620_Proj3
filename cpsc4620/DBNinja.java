@@ -372,8 +372,8 @@ public final class DBNinja {
 	public static void updateCustomerAddress(int custID, String street, String city, String state, String zip)
 			throws SQLException, IOException {
 		connect_to_db();
-		String query = "UPDATE customer SET" +
-				"CustomerStreetAddress = ?, CustomerCity = ?, CustomerState = ?, CustomerZipcode = ?" +
+		String query = "UPDATE customer SET " +
+				"CustomerStreetAddress = ?, CustomerCity = ?, CustomerState = ?, CustomerZipcode = ? " +
 				"WHERE CustomerID = ?;";
 		PreparedStatement ps = conn.prepareStatement(query);
 		ps.setString(1, street);
@@ -411,6 +411,9 @@ public final class DBNinja {
 		 * 
 		 */
 		o.setIsComplete(1);
+		if(o instanceof PickupOrder) {
+			((PickupOrder) o).setIsPickedUp(1);
+		}
 		String query = "UPDATE customer_order SET Customer_OrderStatus = 'Completed' WHERE Customer_OrderID = ?;";
 		PreparedStatement ps = conn.prepareStatement(query);
 		ps.setInt(1, o.getOrderID());
@@ -424,6 +427,7 @@ public final class DBNinja {
 	public static void getPizzaDiscounts(Pizza p) throws SQLException, IOException {
 		connect_to_db();
 
+		ArrayList<Discount> discountList = new ArrayList<Discount>();
 		// Query the database for the pizza's toppings
 		String query = "SELECT Pizza_DiscountDiscount_ID FROM pizza_discount WHERE Pizza_DiscountPizza_ID = ?";
 		PreparedStatement ps = conn.prepareStatement(query);
@@ -449,10 +453,11 @@ public final class DBNinja {
 				} else
 					isPercent = false;
 				Discount discount = new Discount(DiscountID, DiscountName, amountOff, isPercent);
-				p.addDiscounts(discount);
+				discountList.add(discount);
 			}
 		}
 
+		p.setDiscounts(discountList);
 		conn.close();
 	}
 
@@ -574,14 +579,18 @@ public final class DBNinja {
 				}
 
 				// Query the database for the customer's address
-				query = "SELECT CustomerStreetAddress FROM customer WHERE CustomerID = ?;";
+				query = "SELECT CustomerStreetAddress, CustomerCity, CustomerState, CustomerZipcode FROM customer " +
+						"WHERE CustomerID = ?;";
 				ps = conn.prepareStatement(query);
 				ps.setInt(1, custID);
 				subTypeResultSet = ps.executeQuery();
 				String address = "";
 				while(subTypeResultSet.next()) {
 					// Get the customer's address
-					address = subTypeResultSet.getString("CustomerStreetAddress");
+					address = subTypeResultSet.getString("CustomerStreetAddress") + " " +
+							subTypeResultSet.getString("CustomerCity") + " " +
+							subTypeResultSet.getString("CustomerState") + " " +
+							subTypeResultSet.getString("CustomerZipcode");
 				}
 
 				ret = new DeliveryOrder(orderID, custID, time, cPrice, bPrice, isComplete, address);
@@ -726,12 +735,12 @@ public final class DBNinja {
 		date = date + " 00:00:00";
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 		LocalDateTime queryTimestamp = LocalDateTime.parse(date, formatter);
-		System.out.println(queryTimestamp.toString());
 		ps.setTimestamp(1, Timestamp.valueOf(queryTimestamp));
 		ResultSet orderResultSet = ps.executeQuery();
 
 		// Get all orders from the table
 		while (orderResultSet.next()) {
+			System.out.println("in rs loop");
 			int orderID = orderResultSet.getInt("Customer_OrderID");
 			double custPrice = orderResultSet.getDouble("Customer_OrderCustomerPrice");
 			double busPrice = orderResultSet.getDouble("Customer_OrderBusinessCost");
@@ -748,7 +757,7 @@ public final class DBNinja {
 		}
 
 		conn.close();
-		return null;
+		return orderList;
 	}
 
 	public static ArrayList<Discount> getDiscountList() throws SQLException, IOException {

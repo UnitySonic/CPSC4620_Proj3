@@ -136,15 +136,11 @@ public class Menu {
 		 * 
 		 * make sure you use the prompts below in the correct order!
 		 */
-
-		// Pizza and discount lists
-		ArrayList<Pizza> pizzaList = new ArrayList<Pizza>();
 		ArrayList<Discount> discountList = new ArrayList<Discount>();
 
 		// Order object fields
-		Order newOrder = null;
+		Order newOrder;
 		int order_ID = DBNinja.getNewOrderID();
-		String order_type = "";
 		final int INVALID_ID = -99;
 		int customer_ID = INVALID_ID;
 		int table_num = 0;
@@ -182,7 +178,6 @@ public class Menu {
 		}
 		// Set order type
 		if (order_type_choice == 1) {
-			order_type = DBNinja.dine_in;
 			// Dine-in orders need a table number
 			System.out.println("What is the table number for this order?");
 			option = reader.readLine();
@@ -242,11 +237,9 @@ public class Menu {
 			}
 			if (order_type_choice == 2) {
 				String timestamp = createTimestamp();
-				order_type = DBNinja.pickup;
 				// Create a pick-up order
 				newOrder = new PickupOrder(DBNinja.getNewOrderID(), customer_ID, timestamp, 0.0, 0.0, 0, 0);
 			} else {
-				order_type = DBNinja.delivery;
 				// Delivery orders require a customer's address
 				System.out.println("What is the House/Apt Number for this order? (e.g., 111)");
 				customer_street = (reader.readLine() + " ");
@@ -254,10 +247,26 @@ public class Menu {
 				customer_street += reader.readLine();
 				System.out.println("What is the City for this order? (e.g., Greenville)");
 				customer_city = reader.readLine();
+
 				System.out.println("What is the State for this order? (e.g., SC)");
 				customer_state = reader.readLine();
+				Pattern check_state = Pattern.compile("^[A-Z]{2}$");
+				Matcher match_state = check_state.matcher(customer_state);
+				while(!match_state.find()) {
+					System.out.println("What is the State for this order? (e.g., SC)");
+					customer_state = reader.readLine();
+					match_state = check_state.matcher(customer_state);
+				}
+
 				System.out.println("What is the Zip Code for this order? (e.g., 20605)");
 				customer_zip = reader.readLine();
+				Pattern check_zip = Pattern.compile("^[0-9]{5}$", Pattern.CASE_INSENSITIVE);
+				Matcher match_zip = check_zip.matcher(customer_zip);
+				while(!match_zip.find()) {
+					System.out.println("What is the Zip Code for this order? (e.g., 20605)");
+					customer_zip = reader.readLine();
+					match_zip = check_zip.matcher(customer_zip);
+				}
 
 				String address = customer_street + " " + customer_city + " " + customer_state + " " + customer_zip;
 				String timestamp = createTimestamp();
@@ -303,17 +312,25 @@ public class Menu {
 				discount = DBNinja.findDiscountByID(option);
 				if (discount != null) {
 					// Add unique discounts to the order. Ensure that a discount does not drop the price below 0.
-					if(!isDiscountInList(discountList, option)) {
+					if(isDiscountInList(discountList, option)) {
 						System.out.println("This discount has already been applied.");
 					}
-					else if(!discount.isPercent() && (newOrder.getCustPrice() - discount.getAmount() >= 0)) {
+					else if(!discount.isPercent() && (newOrder.getCustPrice() - discount.getAmount() < 0)) {
 						System.out.println("Cannot add a discount that drops the price below 0.");
 					}
 					else {
 						discountList.add(discount);
 					}
 				}
+				else {
+					if(!option.equals("-1"))
+						System.out.println("This discount was not found.");
+				}
 			}
+		}
+
+		for(Discount d : discountList) {
+			newOrder.addDiscount(d);
 		}
 
 		for(Pizza pizza : newOrder.getPizzaList()) {
@@ -476,7 +493,7 @@ public class Menu {
 			return;
 		}
 
-		if(orderList == null) {
+		if(orderList.isEmpty()) {
 			System.out.println("No orders to display, returning to menu.");
 			return;
 		}
@@ -495,8 +512,9 @@ public class Menu {
 				// Check if the chosen order is in the returned list
 				// Exit to menu if it was not found
 				Order viewOrder = findOrderInList(orderList, ID);
-				if(viewOrder == null) {
+				if(viewOrder == null && ID != -1) {
 					System.out.println("Incorrect entry, returning to menu.");
+					return;
 				}
 				else {
 					viewOrderDetails(viewOrder);
@@ -657,7 +675,7 @@ public class Menu {
 				String option = reader.readLine();
 				choice = Integer.parseInt(option);
 			} catch (Exception ignored) {
-
+				System.out.println("Please enter a number between 1 and 4.");
 			}
 			switch (choice) {
 				case 1:
@@ -673,6 +691,7 @@ public class Menu {
 					size = DBNinja.size_xl;
 					break;
 				default:
+					System.out.println("Please enter a number between 1 and 4.");
 					break;
 			}
 		}
@@ -691,7 +710,7 @@ public class Menu {
 				String option = reader.readLine();
 				choice = Integer.parseInt(option);
 			} catch (Exception e) {
-				// Doesn't need to do anything
+				System.out.println("Please enter a number between 1 and 4.");
 			}
 			switch (choice) {
 				case 1:
@@ -707,6 +726,7 @@ public class Menu {
 					crustType = "Gluten-Free";
 					break;
 				default:
+					System.out.println("Please enter a number between 1 and 4.");
 					break;
 			}
 		}
@@ -720,28 +740,31 @@ public class Menu {
 			System.out.println("Which topping do you want to add? Enter the TopID. Enter -1 to stop adding toppings: ");
 			inputtedTopID = reader.readLine();
 
-			Topping selectedTopping = DBNinja.findToppingByID(inputtedTopID);
+			if(!inputtedTopID.equals("-1")) {
+				Topping selectedTopping = DBNinja.findToppingByID(inputtedTopID);
 
-			if (selectedTopping == null)
-				continue;
+				if (selectedTopping == null) {
+					System.out.println("That topping was not found.");
+					continue;
+				}
 
-			String extraRequested = "";
-			while (!extraRequested.equals("y") && !extraRequested.equals("n")) {
-				System.out.println("Do you want to add extra topping? Enter y/n");
-				extraRequested = reader.readLine().toLowerCase();
+				String extraRequested = "";
+				while (!extraRequested.equals("y") && !extraRequested.equals("n")) {
+					System.out.println("Do you want to add extra topping? Enter y/n");
+					extraRequested = reader.readLine().toLowerCase();
+				}
+
+				boolean requestExtra;
+				if (extraRequested.equals("y"))
+					requestExtra = true;
+				else
+					requestExtra = false;
+
+				if (DBNinja.checkIfEnoughTopping(Integer.parseInt(inputtedTopID), size, requestExtra))
+					toppingsUsed.put(selectedTopping, requestExtra);
+				else
+					System.out.println("We don't have enough of that topping to add it...");
 			}
-
-			boolean requestExtra;
-			if (extraRequested.equals("y"))
-				requestExtra = true;
-			else
-				requestExtra = false;
-
-			if (DBNinja.checkIfEnoughTopping(Integer.parseInt(inputtedTopID), size, requestExtra))
-				toppingsUsed.put(selectedTopping, requestExtra);
-			// Then Add topping
-			else
-				System.out.println("We don't have enough of that topping to add it...");
 		}
 
 		////////////////////////////////////////
@@ -778,10 +801,10 @@ public class Menu {
 				discountChoice = reader.readLine();
 				Discount selectedDiscount = DBNinja.findDiscountByID(discountChoice);
 				if (selectedDiscount != null) {
-					if(!isDiscountInList(discountsList, discountChoice)) {
+					if(isDiscountInList(discountsList, discountChoice)) {
 						System.out.println("This discount has already been applied.");
 					}
-					else if(!selectedDiscount.isPercent() && (thePizza.getCustPrice() - selectedDiscount.getAmount() >= 0)) {
+					else if(!selectedDiscount.isPercent() && (thePizza.getCustPrice() - selectedDiscount.getAmount() < 0)) {
 						System.out.println("Cannot add a discount that drops the price below 0.");
 					}
 					else {
@@ -789,6 +812,11 @@ public class Menu {
 					}
 				}
 			}
+		}
+
+		// Add used discounts to the pizza
+		for(Discount d : discountsList) {
+			thePizza.addDiscounts(d);
 		}
 
 		return thePizza;
