@@ -2,6 +2,12 @@
 
 use Pizzeria;
     
+    /* insert INSTORE customer */
+    INSERT INTO customer(CustomerFName, CustomerLName, CustomerPhoneNumber, CustomerStreetAddress, CustomerCity, CustomerState, 
+    CustomerZipcode)
+    VALUES
+		("INSTORE", "Customer", "0000000000", NULL, NULL, NULL, NULL);
+    
     /* populate topping */
     INSERT INTO topping(ToppingName, ToppingPricePerUnit, ToppingCostPerUnit, ToppingCurrentInventory, ToppingMinimumInventory, 
     ToppingSmallSizeUnits, ToppingMediumSizeUnits, ToppingLargeSizeUnits, ToppingXLargeSizeUnits)
@@ -65,16 +71,16 @@ use Pizzeria;
     VALUES(20.75, 3.68, "dinein", "Completed", "2023-03-05 12:03:00");	
     
     INSERT INTO dine_in
-    VALUES(100, 21);
+    VALUES(1, 21);
     
     INSERT INTO pizza(PizzaOrderID, PizzaSize, PizzaCrustType, PizzaPrice, PizzaCost, PizzaCurrentState)
-    VALUES(100, "Large", "Thin", 20.75, 3.68, "Completed");
+    VALUES(1, "Large", "Thin", 20.75, 3.68, "Completed");
     
     INSERT INTO pizza_topping
     VALUES
-		(1, 112, TRUE),
-        (1, 100, FALSE),
-        (1, 101, FALSE);
+		(1, 13, TRUE),
+        (1, 1, FALSE),
+        (1, 2, FALSE);
 	
     INSERT INTO pizza_discount
 	VALUES
@@ -88,23 +94,23 @@ use Pizzeria;
     VALUES(19.78, 4.63, "dinein", "Completed", "2023-04-03 12:05:00");	
     
     INSERT INTO dine_in
-    VALUES(101, 4);
+    VALUES(2, 4);
     
     INSERT INTO pizza(PizzaOrderID, PizzaSize, PizzaCrustType, PizzaPrice, PizzaCost, PizzaCurrentState)
     VALUES
-		(101, "Medium", "Pan", 12.85, 3.23, "Completed"),
-        (101, "Small", "Original", 6.93, 1.40, "Completed");
+		(2, "Medium", "Pan", 12.85, 3.23, "Completed"),
+        (2, "Small", "Original", 6.93, 1.40, "Completed");
     
     INSERT INTO pizza_topping
     VALUES
-		(2, 114, FALSE),
-        (2, 108, FALSE),
-        (2, 106, FALSE),
-        (2, 107, FALSE),
-        (2, 111, FALSE),
-        (3, 112, FALSE),
-        (3, 103, FALSE),
-        (3, 111, FALSE);
+		(2, 15, FALSE),
+        (2, 9, FALSE),
+        (2, 7, FALSE),
+        (2, 8, FALSE),
+        (2, 12, FALSE),
+        (3, 13, FALSE),
+        (3, 4, FALSE),
+        (3, 12, FALSE);
 	
     INSERT INTO pizza_discount
 	VALUES
@@ -124,31 +130,31 @@ use Pizzeria;
 		("Andrew", "Wilkes-Krier", "8642545861", NULL, NULL, NULL, NULL);
     
     INSERT INTO pickup
-    VALUES(102, 1);
+    VALUES(3, 1);
     
     INSERT INTO pizza(PizzaOrderID, PizzaSize, PizzaCrustType, PizzaPrice, PizzaCost, PizzaCurrentState)
     VALUES
-		(102, "Large", "Original", 14.88, 3.30, "Completed"),
-        (102, "Large", "Original", 14.88, 3.30, "Completed"),
-        (102, "Large", "Original", 14.88, 3.30, "Completed"),
-        (102, "Large", "Original", 14.88, 3.30, "Completed"),
-        (102, "Large", "Original", 14.88, 3.30, "Completed"),
-        (102, "Large", "Original", 14.88, 3.30, "Completed");
+		(3, "Large", "Original", 14.88, 3.30, "Completed"),
+        (3, "Large", "Original", 14.88, 3.30, "Completed"),
+        (3, "Large", "Original", 14.88, 3.30, "Completed"),
+        (3, "Large", "Original", 14.88, 3.30, "Completed"),
+        (3, "Large", "Original", 14.88, 3.30, "Completed"),
+        (3, "Large", "Original", 14.88, 3.30, "Completed");
     
     INSERT INTO pizza_topping
     VALUES
-		(4, 112, FALSE),
-        (4, 100, FALSE),
-        (5, 112, FALSE),
-        (5, 100, FALSE),
-        (6, 112, FALSE),
-        (6, 100, FALSE),
-        (7, 112, FALSE),
-        (7, 100, FALSE),
-        (8, 112, FALSE),
-        (8, 100, FALSE),
-        (9, 112, FALSE),
-        (9, 100, FALSE);
+		(4, 13, FALSE),
+        (4, 1, FALSE),
+        (5, 13, FALSE),
+        (5, 1, FALSE),
+        (6, 13, FALSE),
+        (6, 1, FALSE),
+        (7, 13, FALSE),
+        (7, 1, FALSE),
+        (8, 13, FALSE),
+        (8, 1, FALSE),
+        (9, 13, FALSE),
+        (9, 1, FALSE);
 
 /*******************/	
     /* Order 4 */
@@ -158,25 +164,25 @@ use Pizzeria;
     VALUES(86.19, 23.62, "delivery", "Completed", "2023-04-20 19:11:00");	
     
     INSERT INTO delivery
-    VALUES(103, 1);
+    VALUES(4, 2);
     
     INSERT INTO pizza(PizzaOrderID, PizzaSize, PizzaCrustType, PizzaPrice, PizzaCost, PizzaCurrentState)
     VALUES
-		(103, "XLarge", "Original", 27.94, 9.19, "Completed"),
-        (103, "XLarge", "Original", 31.50, 6.25, "Completed"),
-        (103, "XLarge", "Original", 26.75, 8.18, "Completed");
+		(4, "XLarge", "Original", 27.94, 9.19, "Completed"),
+        (4, "XLarge", "Original", 31.50, 6.25, "Completed"),
+        (4, "XLarge", "Original", 26.75, 8.18, "Completed");
     
     INSERT INTO pizza_topping
     VALUES
-		(10, 113, FALSE),
-        (10, 100, FALSE),
-        (10, 101, FALSE),
-        (11, 113, FALSE),
-        (11, 102, TRUE),
-        (11, 109, TRUE),
-        (12, 113, FALSE),
-        (12, 103, FALSE),
-        (12, 116, FALSE);
+		(10, 14, FALSE),
+        (10, 1, FALSE),
+        (10, 2, FALSE),
+        (11, 14, FALSE),
+        (11, 3, TRUE),
+        (11, 10, TRUE),
+        (12, 14, FALSE),
+        (12, 4, FALSE),
+        (12, 17, FALSE);
     
     INSERT INTO pizza_discount
 	VALUES
@@ -184,7 +190,7 @@ use Pizzeria;
 	
     INSERT INTO order_discount
     VALUES
-		(6, 103);
+		(6, 4);
         
 	UPDATE customer
     SET 
@@ -192,7 +198,7 @@ use Pizzeria;
         CustomerCity = "Anderson",
         CustomerState = "SC",
         CustomerZipcode = "29621"	
-	WHERE CustomerID = 1;
+	WHERE CustomerID = 2;
 
 /*********************/
     /* Order 5 */
@@ -207,20 +213,20 @@ use Pizzeria;
 		("Matt", "Engers", "8644749953", NULL, NULL, NULL, NULL);
     
     INSERT INTO pickup
-    VALUES(104, 2);
+    VALUES(5, 2);
     
     INSERT INTO pizza(PizzaOrderID, PizzaSize, PizzaCrustType, PizzaPrice, PizzaCost, PizzaCurrentState)
     VALUES
-		(104, "XLarge", "Gluten-Free", 27.45, 7.88, "Completed");
+		(5, "XLarge", "Gluten-Free", 27.45, 7.88, "Completed");
 
     INSERT INTO pizza_topping
     VALUES
-		(13, 104, FALSE),
-        (13, 105, FALSE),
-        (13, 106, FALSE),
-        (13, 107, FALSE),
-        (13, 108, FALSE),
-        (13, 115, FALSE);
+		(13, 5, FALSE),
+        (13, 6, FALSE),
+        (13, 7, FALSE),
+        (13, 8, FALSE),
+        (13, 9, FALSE),
+        (13, 16, FALSE);
 
     INSERT INTO pizza_discount
 	VALUES
@@ -239,19 +245,19 @@ use Pizzeria;
 		("Frank", "Turner", "8642328944", "6745 Wessex St", "Anderson", "SC", "29621");
     
     INSERT INTO delivery
-    VALUES(105, 3);
+    VALUES(6, 3);
     
     INSERT INTO pizza(PizzaOrderID, PizzaSize, PizzaCrustType, PizzaPrice, PizzaCost, PizzaCurrentState)
     VALUES
-		(105, "Large", "Thin", 25.81, 4.24, "Completed");
+		(6, "Large", "Thin", 25.81, 4.24, "Completed");
 
     INSERT INTO pizza_topping
     VALUES
-		(14, 103, FALSE),
-        (14, 104, FALSE),
-        (14, 105, FALSE),
-        (14, 107, FALSE),
-        (14, 113, TRUE);
+		(14, 4, FALSE),
+        (14, 5, FALSE),
+        (14, 6, FALSE),
+        (14, 8, FALSE),
+        (14, 14, TRUE);
 
 /********************/
     /* Order 7 */
@@ -266,19 +272,19 @@ use Pizzeria;
 		("Milo", "Auckerman", "8648785679", "8879 Suburban Home", "Anderson", "SC", "29621");
     
     INSERT INTO delivery
-    VALUES(106, 4);
+    VALUES(7, 4);
     
     INSERT INTO pizza(PizzaOrderID, PizzaSize, PizzaCrustType, PizzaPrice, PizzaCost, PizzaCurrentState)
     VALUES
-		(105, "Large", "Thin", 18.00, 2.75, "Completed"),
-        (105, "Large", "Thin", 19.25, 3.25, "Completed");
+		(7, "Large", "Thin", 18.00, 2.75, "Completed"),
+        (7, "Large", "Thin", 19.25, 3.25, "Completed");
 
     INSERT INTO pizza_topping
     VALUES
-		(15, 113, TRUE),
-        (16, 100, TRUE),
-        (16, 112, FALSE);
+		(15, 14, TRUE),
+        (16, 1, TRUE),
+        (16, 13, FALSE);
 	
     INSERT INTO order_discount
     VALUES
-		(1, 106);
+		(1, 7);

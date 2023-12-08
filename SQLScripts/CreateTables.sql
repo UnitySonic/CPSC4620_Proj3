@@ -27,7 +27,7 @@ CREATE TABLE topping(
     ToppingXLargeSizeUnits NUMERIC(4,2) NOT NULL,
     CONSTRAINT CHK_CURRENT_INV CHECK (ToppingCurrentInventory >= ToppingMinimumInventory)
 );
-ALTER TABLE topping AUTO_INCREMENT=100;
+ALTER TABLE topping AUTO_INCREMENT=1;
 
 CREATE TABLE customer(
 	CustomerID INT AUTO_INCREMENT PRIMARY KEY,
@@ -49,7 +49,7 @@ CREATE TABLE customer_order(
     Customer_OrderStatus VARCHAR(20) NOT NULL,
     Customer_OrderTimestamp DATETIME NOT NULL
 );
-ALTER TABLE customer_order AUTO_INCREMENT=100;
+ALTER TABLE customer_order AUTO_INCREMENT=1;
 
 CREATE TABLE base_price_and_cost(
 	Base_Price_And_CostPizzaSize VARCHAR(15) NOT NULL,
