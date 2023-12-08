@@ -14,8 +14,7 @@ import java.util.Map;
 import java.text.SimpleDateFormat;
 import java.sql.Timestamp;
 
-import static cpsc4620.DBNinja.findDiscountByID;
-import static cpsc4620.DBNinja.getOrders;
+import static cpsc4620.DBNinja.*;
 
 /*
  * This file is where the front end magic happens.
@@ -66,8 +65,6 @@ public class Menu {
 					break;
 				case 4:// view order
 						// open/closed/date
-					System.out.print("Last order added was: ");
-					System.out.println(DBNinja.getLastOrder().toSimplePrint());
 					ViewOrders();
 					break;
 				case 5:// mark order as complete
@@ -99,6 +96,24 @@ public class Menu {
 		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		return dateFormat.format(new Date(timestamp.getTime()));
+	}
+
+	// Helper method that returns true if a discount with a given ID is in a list. Otherwise, returns false
+	public static boolean isDiscountInList(ArrayList<Discount> discountList, String ID) {
+		int searchFor;
+		try {
+			searchFor = Integer.parseInt(ID);
+		}
+		catch(Exception ignored) {
+			return false;
+		}
+
+		for(Discount d : discountList) {
+			if(d.getDiscountID() == searchFor) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	// allow for a new order to be placed
@@ -133,6 +148,7 @@ public class Menu {
 		final int INVALID_ID = -99;
 		int customer_ID = INVALID_ID;
 		int table_num = 0;
+		final int INSTORE_ID = 1;
 
 		// Customer address fields
 		String customer_street = "";
@@ -192,7 +208,7 @@ public class Menu {
 			String timestamp = createTimestamp();
 
 			// Create a dine-in order
-			newOrder = new DineinOrder(order_ID, 0, timestamp, 0.0, 0.0, 0, table_num);
+			newOrder = new DineinOrder(order_ID, INSTORE_ID, timestamp, 0.0, 0.0, 0, table_num);
 		} else {
 			// Pickup and delivery orders need a customer
 			System.out.println("Is this order for an existing customer? Answer y/n: ");
@@ -245,6 +261,10 @@ public class Menu {
 
 				String address = customer_street + " " + customer_city + " " + customer_state + " " + customer_zip;
 				String timestamp = createTimestamp();
+
+				// Update the customer's address in the database
+				DBNinja.updateCustomerAddress(customer_ID, customer_street, customer_city, customer_state, customer_zip);
+
 				// Create a delivery order
 				newOrder = new DeliveryOrder(DBNinja.getNewOrderID(), customer_ID, timestamp, 0.0, 0.0, 0, address);
 			}
@@ -252,10 +272,10 @@ public class Menu {
 
 		// Prompt user to build a pizza
 		System.out.println("Let's build a pizza!");
-		option = "0";
-		Pizza newPizza = null;
+		Pizza newPizza;
 		while (!option.equals("-1")) {
-			newOrder.addPizza(buildPizza(order_ID));
+			newPizza = buildPizza(order_ID);
+			newOrder.addPizza(newPizza);
 			System.out.println(
 					"Enter -1 to stop adding pizzas...Enter anything else to continue adding pizzas to the order.");
 			option = reader.readLine();
@@ -269,7 +289,7 @@ public class Menu {
 			option = reader.readLine();
 		}
 
-		Discount discount = null;
+		Discount discount;
 		if(option.equals("y")) {
 			// Add discounts to the order
 			option = "0";
@@ -281,16 +301,31 @@ public class Menu {
 
 				// Query the discount table using the provided ID
 				discount = DBNinja.findDiscountByID(option);
-				if (DBNinja.findDiscountByID(option) != null) {
-					// Add existing discounts to the order
-					newOrder.addDiscount(DBNinja.findDiscountByID(option));
+				if (discount != null) {
+					// Add unique discounts to the order. Ensure that a discount does not drop the price below 0.
+					if(!isDiscountInList(discountList, option)) {
+						System.out.println("This discount has already been applied.");
+					}
+					else if(!discount.isPercent() && (newOrder.getCustPrice() - discount.getAmount() >= 0)) {
+						System.out.println("Cannot add a discount that drops the price below 0.");
+					}
+					else {
+						discountList.add(discount);
+					}
 				}
 			}
 		}
 
-		DBNinja.addOrder(newOrder);
-		// Add all pizzas for the order to the database
 		for(Pizza pizza : newOrder.getPizzaList()) {
+			// Total up the prices of each pizza to get the order's prices
+			newOrder.setBusPrice(newOrder.getBusPrice() + pizza.getBusPrice());
+			newOrder.setCustPrice(newOrder.getCustPrice() + pizza.getCustPrice());
+		}
+
+		DBNinja.addOrder(newOrder);
+
+		for(Pizza pizza : newOrder.getPizzaList()) {
+			// Add all pizzas for the order to the database
 			DBNinja.addPizza(pizza);
 		}
 		System.out.println("Finished adding order...Returning to menu...");
@@ -358,6 +393,39 @@ public class Menu {
 		DBNinja.addCustomer(cust);
 	}
 
+	// Helper function that views an order in detail
+	public static void viewOrderDetails(Order o) throws SQLException, IOException {
+		// Get all discounts and pizzas for an order
+		DBNinja.getPizzasForOrder(o);
+		DBNinja.getOrderDiscounts(o);
+
+		System.out.println(o.toString());
+		if(o.getDiscountList().isEmpty()) {
+			System.out.println("NO ORDER DISCOUNTS");
+		}
+		else {
+			System.out.print("ORDER DISCOUNTS:");
+			for (Discount d : o.getDiscountList()) {
+				System.out.print(" " + d.getDiscountName());
+			}
+			System.out.println();
+		}
+
+		for(Pizza p : o.getPizzaList()) {
+			System.out.println(p.toString());
+			if(p.getDiscounts().isEmpty()) {
+				System.out.println("NO PIZZA DISCOUNTS");
+			}
+			else {
+				System.out.print("PIZZA DISCOUNTS:");
+				for (Discount d : p.getDiscounts()) {
+					System.out.print(" " + d.getDiscountName());
+				}
+				System.out.println();
+			}
+		}
+	}
+
 	// View any orders that are not marked as completed
 	public static void ViewOrders() throws SQLException, IOException {
 		/*
@@ -375,7 +443,7 @@ public class Menu {
 		 * 
 		 */
 
-		ArrayList<Order> orderList = null;
+		ArrayList<Order> orderList;
 		String option = "";
 		String date = "";
 		System.out.println("Would you like to:\n(a) display all orders [open or closed]\n(b) display all open orders\n" +
@@ -388,7 +456,7 @@ public class Menu {
 			orderList = DBNinja.getOrders(true);
 		}
 		else if(option.equals("c")) {
-
+			orderList = DBNinja.getClosedOrders();
 		}
 		else if(option.equals("d")){
 			System.out.println("What is the date you want to restrict by? (FORMAT= YYYY-MM-DD)");
@@ -418,9 +486,26 @@ public class Menu {
 			}
 		}
 
-		// finish this
-		System.out.println("Which order would you like to see in detail? Enter the number (-1 to exit): ");
-		System.out.println("Incorrect entry, returning to menu.");
+		int ID = 0;
+		do {
+			System.out.println("Which order would you like to see in detail? Enter the number (-1 to exit): ");
+			option = reader.readLine();
+			try {
+				ID = Integer.parseInt(option);
+				// Check if the chosen order is in the returned list
+				// Exit to menu if it was not found
+				Order viewOrder = findOrderInList(orderList, ID);
+				if(viewOrder == null) {
+					System.out.println("Incorrect entry, returning to menu.");
+				}
+				else {
+					viewOrderDetails(viewOrder);
+				}
+			}
+			catch(Exception ignored) {
+				System.out.println("Please enter a numeric value.");
+			}
+		} while(ID != -1);
 	}
 
 	// Helper function that gets an order with a provided orderID from a list
@@ -550,8 +635,6 @@ public class Menu {
 		 * 
 		 * Once the discounts are added, we can return the pizza
 		 */
-
-		Pizza ret = null;
 		String size = "";
 		String crustType = "";
 
@@ -661,28 +744,6 @@ public class Menu {
 				System.out.println("We don't have enough of that topping to add it...");
 		}
 
-		// Ask if they want a discount
-		String discountRequest = "";
-		while (!discountRequest.equals("y") && !discountRequest.equals("n")) {
-			System.out.println("Do you want to add discounts to this Pizza? Enter y/n?");
-			discountRequest = reader.readLine().toLowerCase();
-		}
-
-		// Loop for asking which discounts they want
-		if (discountRequest.equals("y")) {
-			String discountChoice = "";
-			while (!discountChoice.equals("-1")) {
-				DBNinja.printDiscounts();
-				System.out.println(
-						"Which Pizza Discount do you want to add? Enter the DiscountID. Enter -1 to stop adding Discounts: ");
-				discountChoice = reader.readLine();
-				Discount selectedDiscount = DBNinja.findDiscountByID(discountChoice);
-				if (selectedDiscount != null) {
-					discountsList.add(selectedDiscount);
-				}
-			}
-		}
-
 		////////////////////////////////////////
 		/////////// ADDING FUNCTIONS ///////////
 		////////////////////////////////////////
@@ -700,11 +761,37 @@ public class Menu {
 			thePizza.addToppings(t, toppingsUsed.get(t));
 		}
 
-		for (Discount d : discountsList) {
-			thePizza.addDiscounts(d);
+		// Ask if they want a discount
+		String discountRequest = "";
+		while (!discountRequest.equals("y") && !discountRequest.equals("n")) {
+			System.out.println("Do you want to add discounts to this Pizza? Enter y/n?");
+			discountRequest = reader.readLine().toLowerCase();
 		}
 
-		return ret;
+		// Loop for asking which discounts they want
+		if (discountRequest.equals("y")) {
+			String discountChoice = "";
+			while (!discountChoice.equals("-1")) {
+				DBNinja.printDiscounts();
+				System.out.println(
+						"Which Pizza Discount do you want to add? Enter the DiscountID. Enter -1 to stop adding Discounts: ");
+				discountChoice = reader.readLine();
+				Discount selectedDiscount = DBNinja.findDiscountByID(discountChoice);
+				if (selectedDiscount != null) {
+					if(!isDiscountInList(discountsList, discountChoice)) {
+						System.out.println("This discount has already been applied.");
+					}
+					else if(!selectedDiscount.isPercent() && (thePizza.getCustPrice() - selectedDiscount.getAmount() >= 0)) {
+						System.out.println("Cannot add a discount that drops the price below 0.");
+					}
+					else {
+						discountsList.add(selectedDiscount);
+					}
+				}
+			}
+		}
+
+		return thePizza;
 	}
 
 	public static void PrintReports() throws SQLException, NumberFormatException, IOException {
