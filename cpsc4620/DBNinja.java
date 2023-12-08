@@ -738,9 +738,8 @@ public final class DBNinja {
 		ps.setTimestamp(1, Timestamp.valueOf(queryTimestamp));
 		ResultSet orderResultSet = ps.executeQuery();
 
-		// Get all orders from the table
+		// Get all orders from the tables
 		while (orderResultSet.next()) {
-			System.out.println("in rs loop");
 			int orderID = orderResultSet.getInt("Customer_OrderID");
 			double custPrice = orderResultSet.getDouble("Customer_OrderCustomerPrice");
 			double busPrice = orderResultSet.getDouble("Customer_OrderBusinessCost");

@@ -142,7 +142,7 @@ public class Menu {
 		Order newOrder;
 		int order_ID = DBNinja.getNewOrderID();
 		final int INVALID_ID = -99;
-		int customer_ID = INVALID_ID;
+		int customer_ID;
 		int table_num = 0;
 		final int INSTORE_ID = 1;
 
@@ -165,7 +165,6 @@ public class Menu {
 		}
 		// Verify that user entered a valid choice
 		while (order_type_choice < 1 || order_type_choice > 3) {
-			System.out.println("Invalid choice. Please enter a number from 1 to 3.");
 			System.out.println(
 					"Is this order for: \n1.) Dine-in\n2.) Pick-up\n3.) Delivery\nEnter the number of your choice:");
 			option = reader.readLine();
@@ -188,7 +187,6 @@ public class Menu {
 
 			}
 			while (table_num <= 0) {
-				System.out.println("Table number must be at least 1.");
 				System.out.println("What is the table number for this order?");
 				option = reader.readLine();
 				try {
@@ -311,20 +309,7 @@ public class Menu {
 				// Query the discount table using the provided ID
 				discount = DBNinja.findDiscountByID(option);
 				if (discount != null) {
-					// Add unique discounts to the order. Ensure that a discount does not drop the price below 0.
-					if(isDiscountInList(discountList, option)) {
-						System.out.println("This discount has already been applied.");
-					}
-					else if(!discount.isPercent() && (newOrder.getCustPrice() - discount.getAmount() < 0)) {
-						System.out.println("Cannot add a discount that drops the price below 0.");
-					}
-					else {
-						discountList.add(discount);
-					}
-				}
-				else {
-					if(!option.equals("-1"))
-						System.out.println("This discount was not found.");
+					discountList.add(discount);
 				}
 			}
 		}
@@ -480,7 +465,7 @@ public class Menu {
 			date = reader.readLine();
 			Pattern check_date = Pattern.compile("^[0-9]{4}-[0-9]{2}-[0-9]{2}$", Pattern.CASE_INSENSITIVE);
 			Matcher match_date = check_date.matcher(date);
-			// Do not accept invalid phone numbers
+			// Do not accept invalid dates
 			while (!match_date.find()) {
 				System.out.println("What is the date you want to restrict by? (FORMAT= YYYY-MM-DD)");
 				date = reader.readLine();
@@ -521,7 +506,7 @@ public class Menu {
 				}
 			}
 			catch(Exception ignored) {
-				System.out.println("Please enter a numeric value.");
+
 			}
 		} while(ID != -1);
 	}
@@ -551,7 +536,7 @@ public class Menu {
 
 		// Get all open orders
 		ArrayList<Order> openOrderList = DBNinja.getOrders(true);
-		if(openOrderList == null) {
+		if(openOrderList.isEmpty()) {
 			System.out.println("There are no open orders currently... returning to menu...");
 			return;
 		}
@@ -675,7 +660,7 @@ public class Menu {
 				String option = reader.readLine();
 				choice = Integer.parseInt(option);
 			} catch (Exception ignored) {
-				System.out.println("Please enter a number between 1 and 4.");
+
 			}
 			switch (choice) {
 				case 1:
@@ -691,7 +676,6 @@ public class Menu {
 					size = DBNinja.size_xl;
 					break;
 				default:
-					System.out.println("Please enter a number between 1 and 4.");
 					break;
 			}
 		}
@@ -710,7 +694,7 @@ public class Menu {
 				String option = reader.readLine();
 				choice = Integer.parseInt(option);
 			} catch (Exception e) {
-				System.out.println("Please enter a number between 1 and 4.");
+
 			}
 			switch (choice) {
 				case 1:
@@ -726,7 +710,6 @@ public class Menu {
 					crustType = "Gluten-Free";
 					break;
 				default:
-					System.out.println("Please enter a number between 1 and 4.");
 					break;
 			}
 		}
@@ -744,7 +727,6 @@ public class Menu {
 				Topping selectedTopping = DBNinja.findToppingByID(inputtedTopID);
 
 				if (selectedTopping == null) {
-					System.out.println("That topping was not found.");
 					continue;
 				}
 
@@ -802,14 +784,12 @@ public class Menu {
 				Discount selectedDiscount = DBNinja.findDiscountByID(discountChoice);
 				if (selectedDiscount != null) {
 					if(isDiscountInList(discountsList, discountChoice)) {
-						System.out.println("This discount has already been applied.");
+
 					}
 					else if(!selectedDiscount.isPercent() && (thePizza.getCustPrice() - selectedDiscount.getAmount() < 0)) {
-						System.out.println("Cannot add a discount that drops the price below 0.");
+
 					}
-					else {
-						discountsList.add(selectedDiscount);
-					}
+					discountsList.add(selectedDiscount);
 				}
 			}
 		}
