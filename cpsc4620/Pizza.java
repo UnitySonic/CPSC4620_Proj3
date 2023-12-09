@@ -130,13 +130,12 @@ public class Pizza {
 			this.BusPrice += t.getBusPrice();
 			this.CustPrice += t.getCustPrice();
 		}
-
 	}
 
 	public void addDiscounts(Discount d) {
 		Discounts.add(d);
 		if (d.isPercent()) {
-			this.CustPrice = (this.CustPrice * (1 - d.getAmount()));
+			this.CustPrice = (this.CustPrice * (1 - (d.getAmount() / 100)));
 		} else {
 			this.CustPrice -= d.getAmount();
 		}

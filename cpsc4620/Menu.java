@@ -7,8 +7,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.HashMap;
 import java.util.Map;
 import java.text.SimpleDateFormat;
@@ -58,6 +56,7 @@ public class Menu {
 					EnterOrder();
 					break;
 				case 2:// view customers
+					System.out.println(DBNinja.findCustomerByPhone("8642328944").getCustID());
 					viewCustomers();
 					break;
 				case 3:// enter customer
@@ -245,26 +244,10 @@ public class Menu {
 				customer_street += reader.readLine();
 				System.out.println("What is the City for this order? (e.g., Greenville)");
 				customer_city = reader.readLine();
-
 				System.out.println("What is the State for this order? (e.g., SC)");
 				customer_state = reader.readLine();
-				Pattern check_state = Pattern.compile("^[A-Z]{2}$");
-				Matcher match_state = check_state.matcher(customer_state);
-				while(!match_state.find()) {
-					System.out.println("What is the State for this order? (e.g., SC)");
-					customer_state = reader.readLine();
-					match_state = check_state.matcher(customer_state);
-				}
-
 				System.out.println("What is the Zip Code for this order? (e.g., 20605)");
 				customer_zip = reader.readLine();
-				Pattern check_zip = Pattern.compile("^[0-9]{5}$", Pattern.CASE_INSENSITIVE);
-				Matcher match_zip = check_zip.matcher(customer_zip);
-				while(!match_zip.find()) {
-					System.out.println("What is the Zip Code for this order? (e.g., 20605)");
-					customer_zip = reader.readLine();
-					match_zip = check_zip.matcher(customer_zip);
-				}
 
 				String address = customer_street + " " + customer_city + " " + customer_state + " " + customer_zip;
 				String timestamp = createTimestamp();
@@ -309,13 +292,12 @@ public class Menu {
 				// Query the discount table using the provided ID
 				discount = DBNinja.findDiscountByID(option);
 				if (discount != null) {
-					discountList.add(discount);
+					if(!(isDiscountInList(discountList, option) ||
+							(!discount.isPercent() && (newOrder.getCustPrice() - discount.getAmount() < 0)))) {
+						discountList.add(discount);
+					}
 				}
 			}
-		}
-
-		for(Discount d : discountList) {
-			newOrder.addDiscount(d);
 		}
 
 		for(Pizza pizza : newOrder.getPizzaList()) {
@@ -324,7 +306,14 @@ public class Menu {
 			newOrder.setCustPrice(newOrder.getCustPrice() + pizza.getCustPrice());
 		}
 
+		for(Discount d : discountList) {
+			newOrder.addDiscount(d);
+		}
+
 		DBNinja.addOrder(newOrder);
+		for(Discount d : newOrder.getDiscountList()) {
+			DBNinja.useOrderDiscount(newOrder, d);
+		}
 
 		for(Pizza pizza : newOrder.getPizzaList()) {
 			// Add all pizzas for the order to the database
@@ -362,27 +351,8 @@ public class Menu {
 		// User Input Prompts...
 		System.out.println("Please Enter the Customer name (First Name <space> Last Name):");
 		name = reader.readLine();
-		// Use a regex pattern to verify the name is correct
-		Pattern check_name = Pattern.compile("^[^\\s]+\\s[^\\s]+$", Pattern.CASE_INSENSITIVE);
-		Matcher match_name = check_name.matcher(name);
-		// Do not accept invalid names
-		while (!match_name.find()) {
-			System.out.println("Please Enter the Customer name (First Name <space> Last Name):");
-			name = reader.readLine();
-			match_name = check_name.matcher(name);
-		}
-
 		System.out.println("What is this customer's phone number (##########) (No dash/space)");
 		phone = reader.readLine();
-		// Use a regex pattern to verify the phone number is correct
-		Pattern check_phone = Pattern.compile("^[0-9]{10}$", Pattern.CASE_INSENSITIVE);
-		Matcher match_phone = check_phone.matcher(phone);
-		// Do not accept invalid phone numbers
-		while (!match_phone.find()) {
-			System.out.println("What is this customer's phone number (##########) (No dash/space)");
-			phone = reader.readLine();
-			match_phone = check_phone.matcher(phone);
-		}
 
 		// Create a Customer Object
 		String[] split_name = name.split(" ", 0);
@@ -463,14 +433,6 @@ public class Menu {
 		else if(option.equals("d")){
 			System.out.println("What is the date you want to restrict by? (FORMAT= YYYY-MM-DD)");
 			date = reader.readLine();
-			Pattern check_date = Pattern.compile("^[0-9]{4}-[0-9]{2}-[0-9]{2}$", Pattern.CASE_INSENSITIVE);
-			Matcher match_date = check_date.matcher(date);
-			// Do not accept invalid dates
-			while (!match_date.find()) {
-				System.out.println("What is the date you want to restrict by? (FORMAT= YYYY-MM-DD)");
-				date = reader.readLine();
-				match_date = check_date.matcher(date);
-			}
 			orderList = DBNinja.getOrdersByDate(date);
 		}
 		else {
@@ -489,26 +451,22 @@ public class Menu {
 		}
 
 		int ID = 0;
-		do {
-			System.out.println("Which order would you like to see in detail? Enter the number (-1 to exit): ");
-			option = reader.readLine();
-			try {
-				ID = Integer.parseInt(option);
-				// Check if the chosen order is in the returned list
-				// Exit to menu if it was not found
-				Order viewOrder = findOrderInList(orderList, ID);
-				if(viewOrder == null && ID != -1) {
-					System.out.println("Incorrect entry, returning to menu.");
-					return;
-				}
-				else {
-					viewOrderDetails(viewOrder);
-				}
+		System.out.println("Which order would you like to see in detail? Enter the number (-1 to exit): ");
+		option = reader.readLine();
+		try {
+			ID = Integer.parseInt(option);
+			// Check if the chosen order is in the returned list
+			// Exit to menu if it was not found
+			Order viewOrder = findOrderInList(orderList, ID);
+			if (viewOrder == null && ID != -1) {
+				System.out.println("Incorrect entry, returning to menu.");
+			} else if(ID != -1) {
+				viewOrderDetails(viewOrder);
 			}
-			catch(Exception ignored) {
-
-			}
-		} while(ID != -1);
+		}
+		catch(Exception ignored) {
+			System.out.println("Incorrect entry, returning to menu.");
+		}
 	}
 
 	// Helper function that gets an order with a provided orderID from a list
@@ -783,13 +741,10 @@ public class Menu {
 				discountChoice = reader.readLine();
 				Discount selectedDiscount = DBNinja.findDiscountByID(discountChoice);
 				if (selectedDiscount != null) {
-					if(isDiscountInList(discountsList, discountChoice)) {
-
+					if(!(isDiscountInList(discountsList, discountChoice) ||
+							(!selectedDiscount.isPercent() && (thePizza.getCustPrice() - selectedDiscount.getAmount() < 0)))) {
+						discountsList.add(selectedDiscount);
 					}
-					else if(!selectedDiscount.isPercent() && (thePizza.getCustPrice() - selectedDiscount.getAmount() < 0)) {
-
-					}
-					discountsList.add(selectedDiscount);
 				}
 			}
 		}
